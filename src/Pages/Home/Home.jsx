@@ -1,5 +1,4 @@
 import React, { useContext, useEffect } from 'react';
-import useAxiosSecure from '../../Hooks/useAxiosSecure';
 
 
 const Home = () => {
