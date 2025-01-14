@@ -1,14 +1,16 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import useAppContext from '../../Contexts/useAppContext';
 
 
 
 const Navbar = () => {
-    const { user, logout, showSearchbar, setShowSearchbar } = { user:null , logout:null, showSearchbar:null, setShowSearchbar:null }
+    const { user, logout, showSearchbar, setShowSearchbar } = useAppContext()
     const [isNavBg, setIsNavBg] = useState();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef(null);
+    console.log(user);
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
