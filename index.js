@@ -35,6 +35,20 @@ const client = new MongoClient(uri, {
     }
 });
 
+const verifyToken = (req, res, next) => {
+    if (!req.cookies.token) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+    jwt.verify(req.cookies.token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        req.user = decoded;
+        next();
+    })
+}
+
+
 
 
 async function run() {
@@ -44,6 +58,10 @@ async function run() {
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
+
+        const LinkHiveDB = client.db("LinkHiveDB");
+        const usersCollection = LinkHiveDB.collection("Users");
+
 
         app.post('/jwt', async (req, res) => {
             const user = req.body;
@@ -56,7 +74,35 @@ async function run() {
                 .send({ success: true });
         });
 
+        app.delete('/jwt', async (req, res) => {
+            res.clearCookie('token', {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+            }).send({ success: true });
+        });
 
+        app.post('/user', verifyToken, async (req, res) => {
+            const bodyData = req.body;
+            const newUser = {
+                email: bodyData.email,
+                name: bodyData.name,
+                profileImage: bodyData.photo,
+                role: "user",
+                badges: ["bronze"],
+                membership: false,
+                postsCount: 0,
+                commentCount: 0 
+            }
+
+            const query = { email: req.user.email}
+            const userData = await usersCollection.findOne(query)
+            if(userData){
+                return res.send(userData)
+            }
+            const insertResp = await usersCollection.insertOne(newUser)
+            res.send({...newUser, _id:insertResp.insertedId })
+        })
 
 
 
