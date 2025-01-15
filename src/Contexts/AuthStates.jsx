@@ -56,7 +56,6 @@ const AuthStates = () => {
                 setUpdated("Profile Updated")
             })
     }
-    console.log(user);
 
     useEffect(() => {
         const authUnmount = onAuthStateChanged(auth, async (currentUser) => {
@@ -68,7 +67,21 @@ const AuthStates = () => {
                     }, {
                         withCredentials: true
                     });
+                    if (currentUser?.photoURL) {
+                        const response = await axiosPublic.post('/user', {
+                            email: currentUser?.email,
+                            name: currentUser?.displayName,
+                            photo: currentUser?.photoURL
+                        }, { withCredentials: true })
+                        const userDBResponse = response.data
+                        setUser({...currentUser, userDBResponse})
+                    }
 
+                } else {
+                    axiosPublic.delete('/jwt')
+                        .then((res) => {
+                            console.log('logout', res.data)
+                        });
                 }
             } finally {
                 setLoading(false);
