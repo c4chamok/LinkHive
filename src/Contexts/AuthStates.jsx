@@ -62,28 +62,14 @@ const AuthStates = () => {
         const authUnmount = onAuthStateChanged(auth, async (currentUser) => {
             setUser({...currentUser})
             try {
-                // if (currentUser?.email) {
-                //     await axiosPublic.post('/jwt', {
-                //         email: currentUser.email
-                //     }, {
-                //         withCredentials: true
-                //     });
-                //     if (currentUser?.photoURL) {
-                //         const response = await axiosPublic.post('/user', {
-                //             email: currentUser?.email,
-                //             name: currentUser?.displayName,
-                //             photo: currentUser?.photoURL
-                //         }, { withCredentials: true })
-                //         const { role } = response.data
-                //         setUser({...currentUser, role})
-                //     }
+                if (currentUser?.email) {
+                    await axiosPublic.post('/jwt', {
+                        email: currentUser.email
+                    }, {
+                        withCredentials: true
+                    });
 
-                // } else {
-                //     axiosPublic.delete('/jwt')
-                //         .then((res) => {
-                //             console.log('logout', res.data)
-                //         });
-                // }
+                }
             } finally {
                 setLoading(false);
 
