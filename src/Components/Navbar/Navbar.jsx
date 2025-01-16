@@ -85,7 +85,7 @@ const Navbar = () => {
                         {user &&
                             <span className="flex items-center gap-2 hover:bg-slate-300 rounded-xl p-2 relative ml-2 md:mr-4 cursor-pointer" onClick={toggleMenu}>
                                     <img
-                                        className="h-10 w-10 rounded-full"
+                                        className={`h-10 w-10 rounded-full ${user.userDBResponse.membership && "border-yellow-500 border-[3px]" }`}
                                         src={user?.photoURL}
                                     />
                                     {
@@ -100,7 +100,7 @@ const Navbar = () => {
                                 {
                                     user &&
                                     <div className='flex flex-col items-center justify-center pb-2 mb-2 border-b'>
-                                        <div className='text-xl text-gray-900 font-semibold'> {user?.displayName}</div>
+                                        <div className='text-xl text-center text-gray-900 font-semibold'> {user?.displayName}</div>
                                     </div>
                                 }
                                 <div className='flex flex-col'>
@@ -116,13 +116,7 @@ const Navbar = () => {
                                     <div className='flex flex-col'>
                                         <NavLink
                                             className='px-4 py-2 font-semibold hover:bg-green-100 hover:text-gray-800 rounded-[50px] '
-                                            to={'/addservice'}> Add Service</NavLink>
-                                        <NavLink
-                                            className='px-4 py-2 font-semibold hover:bg-green-100 hover:text-gray-800 rounded-[50px]  '
-                                            to={'/myservices'}>My Services</NavLink>
-                                        <NavLink
-                                            className='px-4 py-2 font-semibold hover:bg-green-100 hover:text-gray-800 rounded-[50px] '
-                                            to={'/myreviews'}>My Reviews</NavLink>
+                                            to={'/dashboard'}> Dashboard</NavLink>
                                         <div className='w-full'>
                                             {user ?
                                                 <button onClick={logout} className="btn w-full px-6">Logout</button>

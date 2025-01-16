@@ -1,0 +1,22 @@
+import React from 'react';
+import { Link, NavLink, useLocation } from 'react-router';
+
+const Sidebar = () => {
+    const location = useLocation()
+    console.log(location);
+    return (
+        <div className='min-w-[15%] h-full flex flex-col bg-slate-700'>
+            <div className='h-40 '></div>
+            <div className='flex flex-col w-full'>
+                <NavLink to='profile' className={({isActive})=>`pl-3 h-10 flex items-center text-white font-bold ${isActive && "border-l-[10px] border-[#3f5dbdf5]"}`}>My Profile</NavLink>
+                <NavLink to='addpost' className={({isActive})=>`pl-3 h-10 flex items-center text-white font-bold ${isActive && "border-l-[10px] border-[#3f5dbdf5]"}`}> Create a Post</NavLink>
+                <NavLink to='myposts' className={({isActive})=>`pl-3 h-10 flex items-center text-white font-bold ${isActive && "border-l-[10px] border-[#3f5dbdf5]"}`}> My Posts</NavLink>
+            </div>
+            <div className='mt-5 flex flex-col'>
+                <Link to={'/'} className='px-3 h-10 flex items-center text-white font-bold'> Home</Link>
+            </div>
+        </div>
+    );
+};
+
+export default Sidebar;

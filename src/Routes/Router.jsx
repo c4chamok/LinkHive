@@ -1,8 +1,10 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router";
 import MainLayout from "../Layouts/MainLayout";
 import Home from "../Pages/Home/Home"
 import Login from "../Pages/Login/Login";
 import Register from "../Pages/Register/Register";
+import DashboardLayot from "../Layouts/DashboardLayot";
+import AddPost from "../Pages/AddPost/AddPost";
 const router = createBrowserRouter([
     {
         path: '/',
@@ -19,6 +21,28 @@ const router = createBrowserRouter([
             {
                 path: '/register',
                 element: <Register/>
+            },
+        ]
+    },
+    {
+        path: '/dashboard',
+        element: <DashboardLayot/>,
+        children:[
+            {
+                path: '',
+                element: <Navigate to={'profile'}/>
+            },
+            {
+                path: 'profile',
+                element: <h3 className="text-5xl">Thsi is my profile</h3>
+            },
+            {
+                path: 'addpost',
+                element: <AddPost/>
+            },
+            {
+                path: 'myposts',
+                element: <h3 className="text-5xl">Thsi is my Posts</h3>
             },
         ]
     }
