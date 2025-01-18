@@ -1,5 +1,5 @@
 require('dotenv').config();
-const express =  require("express");
+const express = require("express");
 const cors = require("cors");
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
@@ -61,6 +61,7 @@ async function run() {
 
         const LinkHiveDB = client.db("LinkHiveDB");
         const usersCollection = LinkHiveDB.collection("Users");
+        const postsCollection = LinkHiveDB.collection("Posts");
 
 
         app.post('/jwt', async (req, res) => {
@@ -92,22 +93,55 @@ async function run() {
                 badges: ["bronze"],
                 membership: false,
                 postsCount: 0,
-                commentCount: 0 
+                commentCount: 0
             }
 
-            const query = { email: req.user.email}
+            const query = { email: req.user.email }
             const userData = await usersCollection.findOne(query)
-            if(userData){
+            if (userData) {
                 return res.send(userData)
             }
             const insertResp = await usersCollection.insertOne(newUser)
-            res.send({...newUser, _id:insertResp.insertedId })
+            res.send({ ...newUser, _id: insertResp.insertedId })
+        })
+
+        app.get('/user', verifyToken, async (req, res) => {
+            const query = { email: req.user.email }
+            const userData = await usersCollection.findOne(query);
+            if (userData) {
+                return res.send(userData)
+            }
+        })
+
+        app.post('/post', verifyToken, async (req, res) => {
+            const newPost = req.body;
+            newPost.upVote = 0;
+            newPost.downVote = 0;
+            newPost.commentCount = 0;
+            newPost.isReported = false;
+            if (req?.user.email !== newPost.authorEmail) {
+                return res.status(403).json({ message: 'Forbidden' })
+            }
+            const query = { authorId: newPost.authorId };
+            const userPostCount = await postsCollection.countDocuments(query);
+            if (userPostCount >= 5) {
+                return res.send({ message: "maximum 5 posts for bronze member" })
+            }
+            
+            const insertResponse = await postsCollection.insertOne(newPost);
+            const updatedDoc = {
+                $set: {
+                    postsCount: userPostCount + 1
+                }
+            }
+            const userUpdateResponse = await usersCollection.updateOne({ _id: new ObjectId(newPost.authorId) }, updatedDoc, { upsert: false })
+            res.send({ userPostCount, cookieuser: req?.user.email, userUpdateResponse, insertResponse });
         })
 
 
 
 
-    }finally {
+    } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
     }
