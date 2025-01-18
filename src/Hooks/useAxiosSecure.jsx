@@ -8,16 +8,15 @@ const axiosSecure = axios.create({
 })
 
 const useAxiosSecure = () => {
-    const navigate = useNavigate()
-    const { logout } = useAppContext()
-    axiosSecure.interceptors.response.use(response=> {
+    const navigate = useNavigate();
+    const { logout } = useAppContext() || {}
+    axiosSecure.interceptors.response.use(response => {
         return response;
     }, async (error) => {
         const status = error.response.status;
-        console.log(error);
         if (status === 401 || status === 403) {
-            await logout();
-            navigate('/login');
+            await logout()
+            navigate('/login')
         }
         return Promise.reject(error);
     })

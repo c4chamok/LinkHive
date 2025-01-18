@@ -6,7 +6,7 @@ import LoadingPage from '../Pages/LoadingPage/LoadingPage';
 import getUserFromDB from '../TanStackAPIs/getUserFromDB';
 
 const MainLayout = () => {
-    const {loading} = useAppContext()
+    const {loading, user} = useAppContext()
 
     if(loading) return <LoadingPage/>
     return (

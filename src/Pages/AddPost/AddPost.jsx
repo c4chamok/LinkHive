@@ -4,9 +4,10 @@ import Select from "react-select";
 import axios from "axios";
 import useAppContext from "../../Contexts/useAppContext";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
+import getUserFromDB from "../../TanStackAPIs/getUserFromDB";
 
 const AddPost = () => {
-    const { user } = useAppContext()
+    const { userFromDB } = getUserFromDB()
     const { register, handleSubmit, setValue, formState: { errors }, reset } = useForm();
     const [isUploading, setIsUploading] = useState(false);
     const [tags, setTags] = useState([]);
@@ -45,16 +46,14 @@ const AddPost = () => {
                 description: data.description,
                 image: imageUrl,
                 tags: tags.map(tag => tag.value),
-                authorId: user?.userFromDB?._id,
-                authorEmail: user?.userFromDB?.email
+                authorId: userFromDB?._id,
+                authorEmail: userFromDB?.email
             };
 
             const insertResponse = await axiosSecure.post('/post', postData)
 
             console.log("Post Data:", insertResponse);
 
-        } catch (err) {
-            console.error("Error uploading image or saving post:", err);
         }finally{
             reset();
             setTags(null)

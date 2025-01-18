@@ -44,11 +44,20 @@ const AuthStates = () => {
             })
     }
 
+    let isSigningOut = false; 
 
-    const logout = () => {
-        setLoading(true)
-        return signOut(auth)
-    }
+    const logout = async () => {
+        if (isSigningOut) return; 
+        isSigningOut = true; 
+        try {
+            await signOut(auth); 
+        } catch (error) {
+            console.error("Error on logout", error);
+        } finally {
+            setLoading(false); 
+            isSigningOut = false; 
+        }
+    };
 
     const updateUserProfile = (updatedData) => {
         return updateProfile(auth.currentUser, updatedData)
@@ -74,11 +83,12 @@ const AuthStates = () => {
                             photo: currentUser?.photoURL
                         }, { withCredentials: true }) 
                     }
-
+                    setLoading(false);
                 } else {
                     axiosPublic.delete('/jwt', {withCredentials: true})
                         .then((res) => {
                             console.log('logout', res.data)
+                            setLoading(false);
                         });
                 }
             } finally {
