@@ -6,10 +6,10 @@ export const AppContext = createContext()
 
 const ContextProvider = ({children}) => {
     const { showSearchbar, setShowSearchbar, searchText, setSearchText } = AppStates()
-    const { login, register, logout, user, loading, updateUserProfile, googleSignIn} = AuthStates()
+    const { login, register, logout, user, loading, setLoading, updateUserProfile, googleSignIn, setUser } = AuthStates()
     const contextValues = {
         showSearchbar, setShowSearchbar, searchText, setSearchText,
-        login, register, logout, user, loading, updateUserProfile, googleSignIn,
+        login, register, logout, user, loading, setLoading, updateUserProfile, googleSignIn, setUser
     }
     return (
        <AppContext.Provider value={contextValues}>

@@ -2,15 +2,18 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import useAppContext from '../../Contexts/useAppContext';
+import getUserFromDB from '../../TanStackAPIs/getUserFromDB';
 
 
 
 const Navbar = () => {
     const { user, logout, showSearchbar, setShowSearchbar } = useAppContext()
+    const { userFromDB } = getUserFromDB()
+    // const userFromDB = null;
     const [isNavBg, setIsNavBg] = useState();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef(null);
-    console.log(user);
+    console.log(user,userFromDB);
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
@@ -85,7 +88,7 @@ const Navbar = () => {
                         {user &&
                             <span className="flex items-center gap-2 hover:bg-slate-300 rounded-xl p-2 relative ml-2 md:mr-4 cursor-pointer" onClick={toggleMenu}>
                                     <img
-                                        className={`h-10 w-10 rounded-full ${user.userDBResponse.membership && "border-yellow-500 border-[3px]" }`}
+                                        className={`h-10 w-10 rounded-full ${userFromDB?.membership && "border-yellow-500 border-[3px]" }`}
                                         src={user?.photoURL}
                                     />
                                     {

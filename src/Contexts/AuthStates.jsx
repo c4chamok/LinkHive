@@ -59,7 +59,7 @@ const AuthStates = () => {
 
     useEffect(() => {
         const authUnmount = onAuthStateChanged(auth, async (currentUser) => {
-            setUser({...currentUser})
+            setUser(currentUser)
             try {
                 if (currentUser?.email) {
                     await axiosPublic.post('/jwt', {
@@ -72,13 +72,11 @@ const AuthStates = () => {
                             email: currentUser?.email,
                             name: currentUser?.displayName,
                             photo: currentUser?.photoURL
-                        }, { withCredentials: true })
-                        const userDBResponse = response.data
-                        setUser({...currentUser, userDBResponse})
+                        }, { withCredentials: true }) 
                     }
 
                 } else {
-                    axiosPublic.delete('/jwt')
+                    axiosPublic.delete('/jwt', {withCredentials: true})
                         .then((res) => {
                             console.log('logout', res.data)
                         });
@@ -92,7 +90,7 @@ const AuthStates = () => {
         return () => authUnmount()
     }, [updated])
 
-    return { login, register, logout, user, loading, updateUserProfile, googleSignIn, }
+    return { login, register, logout, user, loading, setLoading, updateUserProfile, googleSignIn, setUser }
 };
 
 export default AuthStates;

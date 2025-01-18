@@ -3,6 +3,7 @@ import { Outlet } from 'react-router';
 import Navbar from '../Components/Navbar/Navbar';
 import useAppContext from '../Contexts/useAppContext';
 import LoadingPage from '../Pages/LoadingPage/LoadingPage';
+import getUserFromDB from '../TanStackAPIs/getUserFromDB';
 
 const MainLayout = () => {
     const {loading} = useAppContext()
