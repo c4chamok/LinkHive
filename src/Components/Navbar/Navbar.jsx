@@ -86,7 +86,7 @@ const Navbar = () => {
                     </div>}
                     <div ref={menuRef} className='relative'>
                         {user &&
-                            <span className="flex items-center gap-2 hover:bg-slate-300 rounded-xl p-2 relative ml-2 md:mr-4 cursor-pointer" onClick={toggleMenu}>
+                            <span className="flex items-center gap-2 hover:bg-slate-300 rounded-xl p-2 relative ml-2 cursor-pointer" onClick={toggleMenu}>
                                     <img
                                         className={`h-10 w-10 rounded-full ${userFromDB?.membership && "border-yellow-500 border-[3px]" }`}
                                         src={user?.photoURL}
