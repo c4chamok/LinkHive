@@ -119,6 +119,8 @@ async function run() {
             newPost.downVote = 0;
             newPost.commentCount = 0;
             newPost.isReported = false;
+            newPost.createdAt = new Date();
+
             if (req?.user.email !== newPost.authorEmail) {
                 return res.status(403).json({ message: 'Forbidden' })
             }
@@ -138,7 +140,35 @@ async function run() {
             res.send({ userPostCount, cookieuser: req?.user.email, userUpdateResponse, insertResponse });
         })
 
+        app.get('/post', async (req, res)=>{
+            const allPosts = await postsCollection.aggregate([
+                {
+                    $addFields: {
+                      authorId: { $toObjectId: "$authorId" } 
+                    }
+                  },
+                  {
+                    $lookup: {
+                      from: "Users",
+                      localField: "authorId",
+                      foreignField: "_id",
+                      as: "authorData"
+                    }
+                  },
+                  {
+                    $unwind:  "$authorData"
+                  },
+                  {
+                    $project:{
+                        "authorData.badges": 0,
+                        "authorData.postsCount":0,
+                        "authorData.commentCount":0
+                    }
+                  }
+            ]).toArray();
 
+            res.send(allPosts)
+        })
 
 
     } finally {
