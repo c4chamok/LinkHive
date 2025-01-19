@@ -62,6 +62,7 @@ async function run() {
         const LinkHiveDB = client.db("LinkHiveDB");
         const usersCollection = LinkHiveDB.collection("Users");
         const postsCollection = LinkHiveDB.collection("Posts");
+        const interactionsCollection = LinkHiveDB.collection('Interactions');
 
 
         app.post('/jwt', async (req, res) => {
@@ -115,8 +116,8 @@ async function run() {
 
         app.post('/post', verifyToken, async (req, res) => {
             const newPost = req.body;
-            newPost.upVote = 0;
-            newPost.downVote = 0;
+            newPost.upVotes = 0;
+            newPost.downVotes = 0;
             newPost.commentCount = 0;
             newPost.isReported = false;
             newPost.createdAt = new Date();
@@ -129,7 +130,7 @@ async function run() {
             if (userPostCount >= 5) {
                 return res.send({ message: "maximum 5 posts for bronze member" })
             }
-            
+
             const insertResponse = await postsCollection.insertOne(newPost);
             const updatedDoc = {
                 $set: {
@@ -140,34 +141,80 @@ async function run() {
             res.send({ userPostCount, cookieuser: req?.user.email, userUpdateResponse, insertResponse });
         })
 
-        app.get('/post', async (req, res)=>{
+        app.get('/post', async (req, res) => {
+            const { userId } = req.query;
             const allPosts = await postsCollection.aggregate([
                 {
                     $addFields: {
-                      authorId: { $toObjectId: "$authorId" } 
-                    }
-                  },
-                  {
+                        authorId: { $toObjectId: "$authorId" },
+                    },
+                },
+                {
                     $lookup: {
-                      from: "Users",
-                      localField: "authorId",
-                      foreignField: "_id",
-                      as: "authorData"
-                    }
-                  },
-                  {
-                    $unwind:  "$authorData"
-                  },
-                  {
-                    $project:{
+                        from: "Users",
+                        localField: "authorId",
+                        foreignField: "_id",
+                        as: "authorData",
+                    },
+                },
+                {
+                    $unwind: "$authorData",
+                },
+                {
+                    $project: {
                         "authorData.badges": 0,
-                        "authorData.postsCount":0,
-                        "authorData.commentCount":0
-                    }
-                  }
+                        "authorData.postsCount": 0,
+                        "authorData.commentCount": 0,
+                    },
+                },
             ]).toArray();
+            const postIds = [...new Set(allPosts.map(post => post._id))]
 
-            res.send(allPosts)
+            let userInteractions = [];
+
+            if (userId) {
+                userInteractions = await interactionsCollection
+                    .find({
+                        $and: [
+                            { userId: userId },
+                            { postId: { $in: postIds } }
+                        ]
+                    })
+                    .toArray();
+            }
+
+            const postsWithInteractions = allPosts.map((post) => {
+                const interaction = userInteractions.find(
+                    (int) => int.postId === post._id.toString()
+                );
+                return {
+                    ...post,
+                    userInteraction: interaction || { vote: "" },
+                };
+            });
+            res.send(postsWithInteractions);
+        })
+
+        app.post('/vote', verifyToken, async (req, res) => {
+            const { postId, userId, vote } = req.body;
+            const existingInteraction = await interactionsCollection.findOne({ postId, userId });
+            const newVote = existingInteraction?.vote === vote ? '' : vote;
+            await interactionsCollection.updateOne(
+                { postId, userId },
+                { $set: { vote: newVote } },
+                { upsert: true }
+            );
+
+            const [upVoteCount, downVoteCount] = await Promise.all([
+                interactionsCollection.countDocuments({ postId, vote: 'upVote' }),
+                interactionsCollection.countDocuments({ postId, vote: 'downVote' })
+            ]);
+            await postsCollection.updateOne(
+                { _id: new ObjectId(postId) },
+                { $set: { upVotes: upVoteCount, downVotes: downVoteCount } },
+            );
+            res.send({ message: "Vote updated", postId, userId, vote:newVote, upVoteCount, downVoteCount });
+
         })
 
 
