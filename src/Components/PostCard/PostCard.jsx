@@ -1,21 +1,54 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaThumbsUp, FaThumbsDown, FaComment, FaCrown, FaUserCircle, FaShareAlt } from "react-icons/fa";
 import { HiDotsVertical } from "react-icons/hi";
+import useAxiosSecure from "../../Hooks/useAxiosSecure";
+import useAxiosPublic from "../../Hooks/useAxiosPublic";
 
-const PostCard = ({ post }) => {
+const PostCard = ({ post, userId }) => {
     const {
+        _id,
         title,
         description,
         image,
         tags,
-        upVote,
-        downVote,
+        upVotes,
+        downVotes,
         commentCount,
         authorData,
         createdAt,
+        userInteraction
     } = post;
 
+
+
+    const axiosSecure = useAxiosSecure();
+    const [voteCount, setvoteCount] = useState({ upVotes, downVotes });
     const [menuOpen, setMenuOpen] = useState(false);
+    const [vote, setVote] = useState(userInteraction.vote);
+
+    const handleVote = async (postId, userId, newVote) => {
+        const { data } = await axiosSecure.post('/vote', {
+            postId,
+            vote: newVote,
+            userId,
+        });
+        setvoteCount({
+            upVotes: data.upVoteCount,
+            downVotes: data.downVoteCount
+        })
+    };
+
+    const upvoting = () => {
+        const newVote = vote === "upVote" ? "" : "upVote";
+        setVote(newVote);
+        handleVote(_id, userId, newVote);
+    };
+
+    const downvoting = () => {
+        const newVote = vote === "downVote" ? "" : "downVote";
+        setVote(newVote);
+        handleVote(_id, userId, newVote);
+    };
 
     return (
         <div className="bg-white shadow-md rounded-lg overflow-hidden p-5 relative">
@@ -41,7 +74,7 @@ const PostCard = ({ post }) => {
 
             {/* Title and Author */}
             <div className="flex justify-between items-start mb-4">
-                <div> 
+                <div>
                     <div className="flex items-center gap-2 mt-1">
                         <img src={authorData?.profileImage} className="rounded-full size-7" alt="" />
                         <p className="text-sm text-gray-600">{authorData.name}</p>
@@ -86,13 +119,13 @@ const PostCard = ({ post }) => {
 
             {/* Interaction Buttons */}
             <div className="flex justify-between items-center border-t pt-4">
-                <button className="flex items-center gap-2 text-gray-600 hover:text-blue-600">
+                <button onClick={upvoting} className="flex items-center gap-2 text-gray-600 hover:text-blue-600">
                     <FaThumbsUp />
-                    <span>{upVote} Upvote</span>
+                    <span>{voteCount.upVotes} Upvote</span>
                 </button>
-                <button className="flex items-center gap-2 text-gray-600 hover:text-red-600">
+                <button onClick={downvoting} className="flex items-center gap-2 text-gray-600 hover:text-red-600">
                     <FaThumbsDown />
-                    <span>{downVote} Downvote</span>
+                    <span>{voteCount.downVotes} Downvote</span>
                 </button>
                 <button className="flex items-center gap-2 text-gray-600 hover:text-green-600">
                     <FaComment />
