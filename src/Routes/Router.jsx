@@ -5,6 +5,12 @@ import Login from "../Pages/Login/Login";
 import Register from "../Pages/Register/Register";
 import DashboardLayot from "../Layouts/DashboardLayot";
 import AddPost from "../Pages/AddPost/AddPost";
+import PostPage from "../Pages/PostPage/PostPage";
+import useAxiosPublic from "../Hooks/useAxiosPublic";
+import LoadingPage from "../Pages/LoadingPage/LoadingPage";
+const axiosPublic = useAxiosPublic()
+
+
 const router = createBrowserRouter([
     {
         path: '/',
@@ -21,6 +27,10 @@ const router = createBrowserRouter([
             {
                 path: '/register',
                 element: <Register/>
+            },
+            {
+                path: '/post/:postId',
+                element: <PostPage/>
             },
         ]
     },

@@ -3,6 +3,7 @@ import { FaThumbsUp, FaThumbsDown, FaComment, FaCrown, FaUserCircle, FaShareAlt 
 import { HiDotsVertical } from "react-icons/hi";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import useAxiosPublic from "../../Hooks/useAxiosPublic";
+import { Link } from "react-router";
 
 const PostCard = ({ post, userId }) => {
     const {
@@ -52,7 +53,7 @@ const PostCard = ({ post, userId }) => {
 
     return (
         <div className="bg-white shadow-md rounded-lg overflow-hidden p-5 relative">
-            {/* 3-Dot Menu */}
+
             <div className="absolute top-4 right-4">
                 <button
                     className="text-gray-600 hover:text-gray-900 focus:outline-none"
@@ -72,7 +73,6 @@ const PostCard = ({ post, userId }) => {
                 )}
             </div>
 
-            {/* Title and Author */}
             <div className="flex justify-between items-start mb-4">
                 <div>
                     <div className="flex items-center gap-2 mt-1">
@@ -88,12 +88,11 @@ const PostCard = ({ post, userId }) => {
                 </div>
             </div>
 
-            {/* Timestamp */}
             <p className="text-gray-500 text-xs mt-4">
                 Posted on {new Date(createdAt).toLocaleDateString()}
             </p>
             <h2 className="text-xl font-bold text-gray-800">{title}</h2>
-            {/* Post Image */}
+
             {image && (
                 <img
                     src={image}
@@ -102,10 +101,8 @@ const PostCard = ({ post, userId }) => {
                 />
             )}
 
-            {/* Description */}
             <p className="text-gray-700 text-sm mb-4">{description}</p>
 
-            {/* Tags */}
             <div className="flex flex-wrap gap-2 mb-4">
                 {tags.map((tag, index) => (
                     <span
@@ -116,21 +113,22 @@ const PostCard = ({ post, userId }) => {
                     </span>
                 ))}
             </div>
-
-            {/* Interaction Buttons */}
             <div className="flex justify-between items-center border-t pt-4">
-                <button onClick={upvoting} className="flex items-center gap-2 text-gray-600 hover:text-blue-600">
+                <button onClick={upvoting} className={`flex items-center gap-2 text-gray-600 hover:text-blue-600 
+                    ${vote === "upVote" ? " bg-blue-500/35":""}`}>
                     <FaThumbsUp />
                     <span>{voteCount.upVotes} Upvote</span>
                 </button>
-                <button onClick={downvoting} className="flex items-center gap-2 text-gray-600 hover:text-red-600">
+                <button onClick={downvoting} className={`flex items-center gap-2 text-gray-600 hover:text-red-600 
+                    ${vote === "downVote" ? " bg-red-500/35":""}`}>
                     <FaThumbsDown />
                     <span>{voteCount.downVotes} Downvote</span>
                 </button>
-                <button className="flex items-center gap-2 text-gray-600 hover:text-green-600">
+                <Link to={`/post/${_id}`} className={`flex items-center gap-2 text-gray-600 hover:text-green-600 
+                            ${userInteraction.commented && "bg-green-500/35"}`}>
                     <FaComment />
                     <span>{commentCount} Comments</span>
-                </button>
+                </Link>
                 <button className="flex items-center gap-2 text-gray-600 hover:text-purple-600">
                     <FaShareAlt />
                     <span>Share</span>
