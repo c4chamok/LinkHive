@@ -63,6 +63,7 @@ async function run() {
         const usersCollection = LinkHiveDB.collection("Users");
         const postsCollection = LinkHiveDB.collection("Posts");
         const interactionsCollection = LinkHiveDB.collection('Interactions');
+        const commentsCollection = LinkHiveDB.collection('Comments');
 
 
         app.post('/jwt', async (req, res) => {
@@ -142,8 +143,8 @@ async function run() {
         })
 
         app.get('/post', async (req, res) => {
-            const { userId } = req.query;
-            const allPosts = await postsCollection.aggregate([
+            const { userId, pid } = req.query;
+            const pipeline = [
                 {
                     $addFields: {
                         authorId: { $toObjectId: "$authorId" },
@@ -167,32 +168,36 @@ async function run() {
                         "authorData.commentCount": 0,
                     },
                 },
-            ]).toArray();
-            const postIds = [...new Set(allPosts.map(post => post._id))]
-
-            let userInteractions = [];
-
-            if (userId) {
-                userInteractions = await interactionsCollection
-                    .find({
-                        $and: [
-                            { userId: userId },
-                            { postId: { $in: postIds } }
-                        ]
-                    })
-                    .toArray();
+            ];
+            if (pid) {
+                pipeline.unshift({
+                    $match: {
+                        _id: new ObjectId(pid)
+                    }
+                })
             }
+            const allPosts = await postsCollection.aggregate(pipeline).toArray();
+            const postIds = [...new Set(allPosts.map(post => post._id.toString()))]
+
+            const userInteractions = await interactionsCollection
+                .find({
+                    $and: [
+                        { userId: userId ? userId : "" },
+                        { postId: { $in: postIds } }
+                    ]
+                })
+                .toArray();
 
             const postsWithInteractions = allPosts.map((post) => {
                 const interaction = userInteractions.find(
-                    (int) => int.postId === post._id.toString()
+                    (int) => int.postId.toString() === post._id.toString()
                 );
                 return {
                     ...post,
                     userInteraction: interaction || { vote: "" },
                 };
             });
-            res.send(postsWithInteractions);
+            res.send([...postsWithInteractions]);
         })
 
         app.post('/vote', verifyToken, async (req, res) => {
@@ -213,9 +218,125 @@ async function run() {
                 { _id: new ObjectId(postId) },
                 { $set: { upVotes: upVoteCount, downVotes: downVoteCount } },
             );
-            res.send({ message: "Vote updated", postId, userId, vote:newVote, upVoteCount, downVoteCount });
-
+            res.send({ message: "Vote updated", postId, userId, vote: newVote, upVoteCount, downVoteCount });
         })
+
+        app.post('/comment', verifyToken, async (req, res) => {
+            try {
+                const { postId, userId, content, parentId = null } = req.body;
+
+                if (!postId || !userId || !content) {
+                    return res.status(400).json({ error: "postId, userId, and content are required." });
+                }
+
+                const newComment = {
+                    postId: postId, // Ensure postId is an ObjectId
+                    userId: userId, // Ensure userId is an ObjectId
+                    content,
+                    parentId: parentId ? parentId : null, // Set parentId if provided
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    replies: 0, // Optional, for optimization
+                };
+
+                const result = await commentsCollection.insertOne(newComment);
+
+                if(result?.insertedId){    
+                    const commentsCount = await commentsCollection.countDocuments({ postId: postId });
+                    await postsCollection.updateOne({_id: new ObjectId(postId)},{
+                        $set: {
+                            commentCount: commentsCount
+                        }
+                    })
+                    await interactionsCollection.updateOne({ postId: postId, userId: userId },{
+                        $set: {
+                            commented: true
+                        }
+                    })
+                }
+
+                res.status(201).json({
+                    message: "Comment added successfully.",
+                    commentId: result.insertedId,
+                });
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ error: "An error occurred while adding the comment." });
+            }
+        });
+
+        // Fetch comments for a specific post
+        app.get('/comments/:postId', async (req, res) => {
+            try {
+                const { postId } = req.params;
+                const { includeReplies = false } = req.query; // Optional query parameter
+
+                const pipeline = [
+                    {
+                        $match: { postId, parentId: null }
+                    },
+                    {
+                        $addFields: {
+                            userId: { $toObjectId: "$userId" }
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'Users',
+                            localField: 'userId',
+                            foreignField: '_id',
+                            as: 'userDetails',
+                        },
+                    },
+                    {
+                        $unwind: "$userDetails"
+                    },
+                    {
+                        $project: {
+                            "userDetails._id" : 0,
+                            "userDetails.badges" : 0,
+                            "userDetails.postsCount" : 0,
+                            "userDetails.commentCount" : 0
+                        }
+                    },
+                    { $sort: { createdAt: -1 } }
+                ]
+
+                // Validate input
+                if (!postId) {
+                    return res.status(400).json({ error: "postId is required." });
+                }
+
+                if (includeReplies === 'true') {
+                    // Fetch top-level comments and their replies in a single query
+                    const comments = await commentsCollection.aggregate([
+                        { $match: { postId, parentId: null } },
+                        {
+                            $lookup: {
+                                from: 'Comments',
+                                localField: '_id',
+                                foreignField: 'parentId',
+                                as: 'replies',
+                            },
+                        },
+                        { $sort: { createdAt: -1 } }, // Sort by newest first
+                    ]).toArray();
+
+                    return res.status(200).json(comments);
+                } else {
+                    // Fetch only top-level comments
+                    const comments = await commentsCollection
+                        .aggregate(pipeline)
+                        .toArray();
+
+                    return res.status(200).json(comments);
+                }
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ error: "An error occurred while fetching comments." });
+            }
+        });
+
 
 
     } finally {
