@@ -1,6 +1,7 @@
 import React from "react";
 import { FaUserCircle, FaCrown, FaMedal } from "react-icons/fa";
 import getUserFromDB from "../../TanStackAPIs/getUserFromDB";
+import { Link } from "react-router";
 
 const MyProfile = () => {
     // const user = {
@@ -80,11 +81,11 @@ const MyProfile = () => {
         {/* Become a Member Button */}
         {!user?.membership && (
           <div className="p-6 border-t">
-            <button
+            <Link to={'/dashboard/checkout'}
               className="w-full bg-green-500 text-white font-medium text-sm py-2 px-4 rounded-lg hover:bg-green-600 transition"
             >
               Become a Member
-            </button>
+            </Link>
           </div>
         )}
       </div>
