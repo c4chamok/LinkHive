@@ -56,7 +56,7 @@ const router = createBrowserRouter([
                 element: <h3 className="text-5xl">Thsi is my Posts</h3>
             },
             {
-                path: 'checkout',
+                path: 'subscribe',
                 element: <PaymentPage/>
             },
         ]

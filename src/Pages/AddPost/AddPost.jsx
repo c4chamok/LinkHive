@@ -5,14 +5,16 @@ import axios from "axios";
 import useAppContext from "../../Contexts/useAppContext";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import getUserFromDB from "../../TanStackAPIs/getUserFromDB";
+import { Link } from "react-router";
 
 const AddPost = () => {
-    const { userFromDB } = getUserFromDB()
+    const { userFromDB, refetch } = getUserFromDB()
     const { register, handleSubmit, setValue, formState: { errors }, reset } = useForm();
     const [isUploading, setIsUploading] = useState(false);
     const [tags, setTags] = useState([]);
     const axiosSecure = useAxiosSecure();
-
+    const userPostsCount = userFromDB?.postsCount;
+    const isMember = userFromDB?.membership;
     const tagOptions = [
         { value: "technology", label: "Technology" },
         { value: "education", label: "Education" },
@@ -54,9 +56,10 @@ const AddPost = () => {
 
             console.log("Post Data:", insertResponse);
 
-        }finally{
+        } finally {
             reset();
             setTags(null)
+            refetch()
         }
 
     };
@@ -106,14 +109,22 @@ const AddPost = () => {
                         {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>}
                     </div>
 
-                    <button
-                        type="submit"
-                        className={`w-full flex col-span-2 justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${isUploading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
-                            }`}
-                        disabled={isUploading}
-                    >
-                        {isUploading ? "Uploading..." : "Create Post"}
-                    </button>
+                    {
+                        (!isMember && userPostsCount >= 5) ?
+                            <Link
+                                to={'/dashboard/subscribe'}
+                                className="w-full flex col-span-2 justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                            >You have already posted 5 times. Please Subscribe to Post more</Link> :
+                            <button
+                                type="submit"
+                                className={`w-full flex col-span-2 justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${isUploading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
+                                    }`}
+                                disabled={isUploading}
+                            >
+                                {isUploading ? "Uploading..." : "Create Post"}
+                            </button>
+                    }
+
                 </form>
             </div>
         </div>

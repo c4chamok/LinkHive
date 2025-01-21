@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from "@stripe/react-stripe-js";
 import { FaCreditCard, FaCcVisa, FaCcMastercard } from "react-icons/fa";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
+import getUserFromDB from "../../TanStackAPIs/getUserFromDB";
+import { useNavigate } from "react-router";
 
 function CheckoutForm() {
     const stripe = useStripe();
@@ -11,6 +13,8 @@ function CheckoutForm() {
     const [loading, setLoading] = useState(false);
     const [zipCode, setZipCode] = useState("");
     const [cardBrand, setCardBrand] = useState("generic");
+    const { userFromDB, refetch } = getUserFromDB();
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -21,7 +25,6 @@ function CheckoutForm() {
 
         const response = await axiosSecure("/create-payment-intent");
         const { clientSecret } = await response.data;
-        console.log(CardNumberElement);
 
         const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
             payment_method: {
@@ -33,11 +36,22 @@ function CheckoutForm() {
                 },
             },
         });
+        console.log(paymentIntent.id, userFromDB);
+        const subscribe = async () => {
+            const { data } = await axiosSecure.post('/handle-subscribe', {
+                intentId: paymentIntent.id,
+                userEmail: userFromDB?.email,
+                userId: userFromDB?._id
+            })
+            refetch();
+            navigate('/dashboard/profile');
+        }
 
         if (error) {
             console.error(error);
             alert("Payment failed!");
         } else if (paymentIntent.status === "succeeded") {
+            subscribe()
             setPaymentSuccess(true);
             alert("Payment successful!");
         }

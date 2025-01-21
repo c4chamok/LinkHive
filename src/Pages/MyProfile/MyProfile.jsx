@@ -81,7 +81,7 @@ const MyProfile = () => {
         {/* Become a Member Button */}
         {!user?.membership && (
           <div className="p-6 border-t">
-            <Link to={'/dashboard/checkout'}
+            <Link to={'/dashboard/subscribe'}
               className="w-full bg-green-500 text-white font-medium text-sm py-2 px-4 rounded-lg hover:bg-green-600 transition"
             >
               Become a Member
