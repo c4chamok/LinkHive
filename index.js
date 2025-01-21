@@ -4,7 +4,7 @@ const cors = require("cors");
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const stripe  = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster-crud1.0ugo3.mongodb.net/?retryWrites=true&w=majority&appName=Cluster-CRUD1`;
 
 
@@ -65,6 +65,7 @@ async function run() {
         const postsCollection = LinkHiveDB.collection("Posts");
         const interactionsCollection = LinkHiveDB.collection('Interactions');
         const commentsCollection = LinkHiveDB.collection('Comments');
+        const subscriptionCollection = LinkHiveDB.collection('Subscription');
 
 
         app.post('/jwt', async (req, res) => {
@@ -128,10 +129,13 @@ async function run() {
                 return res.status(403).json({ message: 'Forbidden' })
             }
             const query = { authorId: newPost.authorId };
+            const userInfo = await usersCollection.findOne({ email: newPost.authorEmail })
             const userPostCount = await postsCollection.countDocuments(query);
-            if (userPostCount >= 5) {
+
+            if (userInfo.membership === false && userPostCount >= 5) {
                 return res.send({ message: "maximum 5 posts for bronze member" })
             }
+
 
             const insertResponse = await postsCollection.insertOne(newPost);
             const updatedDoc = {
@@ -242,14 +246,14 @@ async function run() {
 
                 const result = await commentsCollection.insertOne(newComment);
 
-                if(result?.insertedId){    
+                if (result?.insertedId) {
                     const commentsCount = await commentsCollection.countDocuments({ postId: postId });
-                    await postsCollection.updateOne({_id: new ObjectId(postId)},{
+                    await postsCollection.updateOne({ _id: new ObjectId(postId) }, {
                         $set: {
                             commentCount: commentsCount
                         }
                     })
-                    await interactionsCollection.updateOne({ postId: postId, userId: userId },{
+                    await interactionsCollection.updateOne({ postId: postId, userId: userId }, {
                         $set: {
                             commented: true
                         }
@@ -293,10 +297,10 @@ async function run() {
                     },
                     {
                         $project: {
-                            "userDetails._id" : 0,
-                            "userDetails.badges" : 0,
-                            "userDetails.postsCount" : 0,
-                            "userDetails.commentCount" : 0
+                            "userDetails._id": 0,
+                            "userDetails.badges": 0,
+                            "userDetails.postsCount": 0,
+                            "userDetails.commentCount": 0
                         }
                     },
                     { $sort: { createdAt: -1 } }
@@ -336,20 +340,37 @@ async function run() {
 
         app.get("/create-payment-intent", async (req, res) => {
             try {
-              const paymentIntent = await stripe.paymentIntents.create({
-                amount: 1000,
-                currency: 'usd',
-                payment_method_types: ['card']
-              });
-          
-              res.send({
-                clientSecret: paymentIntent.client_secret,
-              });
+                const paymentIntent = await stripe.paymentIntents.create({
+                    amount: 1000,
+                    currency: 'usd',
+                    payment_method_types: ['card']
+                });
+
+                res.send({
+                    clientSecret: paymentIntent.client_secret,
+                });
             } catch (error) {
-              res.status(500).json({ error: error.message });
+                res.status(500).json({ error: error.message });
             }
-          });
-          
+        });
+
+        app.post("/handle-subscribe", async (req, res) => {
+            const { intentId, userEmail, userId } = req.body;
+            const paymentIntent = await stripe.paymentIntents.retrieve(intentId);
+            if (paymentIntent.status !== "succeeded" && paymentIntent.amount !== 1000) {
+                return res.send({ message: "Couldn't process Your Pament" })
+            }
+            await subscriptionCollection.insertOne({
+                intentId, userEmail, userId, time: new Date, paymentMethod: "card", amount: 10
+            })
+            await usersCollection.updateOne({ email: userEmail }, {
+                $set: {
+                    badges: ["bronze", "gold"],
+                    membership: true
+                }
+            }, { upsert: false })
+            res.send({ message: "Successfully subscribed amd become a member"})
+        })
 
 
 
