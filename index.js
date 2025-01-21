@@ -4,6 +4,7 @@ const cors = require("cors");
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const stripe  = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster-crud1.0ugo3.mongodb.net/?retryWrites=true&w=majority&appName=Cluster-CRUD1`;
 
 
@@ -230,13 +231,13 @@ async function run() {
                 }
 
                 const newComment = {
-                    postId: postId, // Ensure postId is an ObjectId
-                    userId: userId, // Ensure userId is an ObjectId
+                    postId: postId,
+                    userId: userId,
                     content,
-                    parentId: parentId ? parentId : null, // Set parentId if provided
+                    parentId: parentId ? parentId : null,
                     createdAt: new Date(),
                     updatedAt: new Date(),
-                    replies: 0, // Optional, for optimization
+                    replies: 0,
                 };
 
                 const result = await commentsCollection.insertOne(newComment);
@@ -265,11 +266,10 @@ async function run() {
             }
         });
 
-        // Fetch comments for a specific post
         app.get('/comments/:postId', async (req, res) => {
             try {
                 const { postId } = req.params;
-                const { includeReplies = false } = req.query; // Optional query parameter
+                const { includeReplies = false } = req.query;
 
                 const pipeline = [
                     {
@@ -302,13 +302,11 @@ async function run() {
                     { $sort: { createdAt: -1 } }
                 ]
 
-                // Validate input
                 if (!postId) {
                     return res.status(400).json({ error: "postId is required." });
                 }
 
                 if (includeReplies === 'true') {
-                    // Fetch top-level comments and their replies in a single query
                     const comments = await commentsCollection.aggregate([
                         { $match: { postId, parentId: null } },
                         {
@@ -319,12 +317,11 @@ async function run() {
                                 as: 'replies',
                             },
                         },
-                        { $sort: { createdAt: -1 } }, // Sort by newest first
+                        { $sort: { createdAt: -1 } },
                     ]).toArray();
 
                     return res.status(200).json(comments);
                 } else {
-                    // Fetch only top-level comments
                     const comments = await commentsCollection
                         .aggregate(pipeline)
                         .toArray();
@@ -336,6 +333,23 @@ async function run() {
                 res.status(500).json({ error: "An error occurred while fetching comments." });
             }
         });
+
+        app.get("/create-payment-intent", async (req, res) => {
+            try {
+              const paymentIntent = await stripe.paymentIntents.create({
+                amount: 1000,
+                currency: 'usd',
+                payment_method_types: ['card']
+              });
+          
+              res.send({
+                clientSecret: paymentIntent.client_secret,
+              });
+            } catch (error) {
+              res.status(500).json({ error: error.message });
+            }
+          });
+          
 
 
 
