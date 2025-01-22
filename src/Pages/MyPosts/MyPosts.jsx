@@ -32,24 +32,29 @@ const PostsTableWithPagination = () => {
     }, [user?.email, axiosSecure]);
 
     // Fetch paginated posts
-    useEffect(() => {
-        const fetchPosts = async () => {
-            if (user?.email) {
-                try {
-                    const skip = (currentPage - 1);
-                    const { data } = await axiosSecure.get(
-                        `/postsbyuser?userEmail=${user.email}&page=${skip}&size=${postsPerPage}`
-                    );
-                    setPosts(data);
-                } catch (error) {
-                    console.error("Error fetching posts:", error);
-                }
+    const fetchPosts = async () => {
+        if (user?.email) {
+            try {
+                const skip = (currentPage - 1);
+                const { data } = await axiosSecure.get(
+                    `/postsbyuser?userEmail=${user.email}&page=${skip}&size=${postsPerPage}`
+                );
+                setPosts(data);
+            } catch (error) {
+                console.error("Error fetching posts:", error);
             }
-        };
-        console.log(totalPages);
+        }
+    };
+    useEffect(() => {
 
         fetchPosts();
     }, [user?.email, currentPage, axiosSecure]);
+
+    const handleDelete = async (postId) => {
+        const { data } = await axiosSecure.delete(`/post?postId=${postId}`);
+        fetchPosts();
+
+    }
 
 
     const handlePageChange = (newPage) => {
@@ -70,6 +75,7 @@ const PostsTableWithPagination = () => {
                                 <th>Title</th>
                                 <th><span className="flex justify-center">Total Votes</span></th>
                                 <th className="flex justify-center">Actions</th>
+                                <th><span className="flex justify-center">Delete</span></th>
                             </tr>
                         </thead>
                         <tbody className="">
@@ -82,6 +88,15 @@ const PostsTableWithPagination = () => {
                                         <button className="btn btn-sm btn-primary">
                                             See Comments ({post.commentCount})
                                         </button>
+                                    </td>
+                                    <td >
+                                        <span className="flex justify-center">
+                                            <button
+                                                onClick={()=>handleDelete(post._id)}
+                                                className="btn btn-sm btn-primary">
+                                                Delete
+                                            </button>
+                                        </span>
                                     </td>
                                 </tr>
                             ))}
