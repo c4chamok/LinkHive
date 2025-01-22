@@ -10,6 +10,7 @@ import useAxiosPublic from "../Hooks/useAxiosPublic";
 import LoadingPage from "../Pages/LoadingPage/LoadingPage";
 import MyProfile from "../Pages/MyProfile/MyProfile";
 import PaymentPage from "../Pages/PaymentPage/PaymentPage"
+import MyPosts from "../Pages/MyPosts/MyPosts";
 
 
 const router = createBrowserRouter([
@@ -53,7 +54,7 @@ const router = createBrowserRouter([
             },
             {
                 path: 'myposts',
-                element: <h3 className="text-5xl">Thsi is my Posts</h3>
+                element: <MyPosts/>
             },
             {
                 path: 'subscribe',
