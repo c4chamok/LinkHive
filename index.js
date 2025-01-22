@@ -372,6 +372,18 @@ async function run() {
             res.send({ message: "Successfully subscribed amd become a member"})
         })
 
+        app.get("/postsbyuser", async (req, res) => {
+            const { userEmail, page, size } = req.query;
+            const posts = await postsCollection.find({ authorEmail: userEmail }).skip(page*size).limit(size*1).toArray()
+            res.send(posts)
+        })
+
+        app.get("/postscountbyuser", async (req, res) => {
+            const { userEmail } = req.query;
+            const postsCount = await postsCollection.countDocuments({ authorEmail: userEmail })
+            res.send({totalCount: postsCount})
+        })
+
 
 
     } finally {
