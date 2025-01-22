@@ -147,6 +147,16 @@ async function run() {
             res.send({ userPostCount, cookieuser: req?.user.email, userUpdateResponse, insertResponse });
         })
 
+        app.delete('/post', verifyToken, async (req, res) => {
+            const userEmail = req?.user.email;
+            const { postId } = req.query;
+            const response = await postsCollection.deleteOne({
+                authorEmail: userEmail,
+                _id: new ObjectId(postId)
+            })
+            res.send(response)
+        })
+
         app.get('/post', async (req, res) => {
             const { userId, pid } = req.query;
             const pipeline = [
