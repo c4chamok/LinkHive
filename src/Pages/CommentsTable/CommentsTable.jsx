@@ -2,22 +2,24 @@ import React, { useEffect, useState } from "react";
 import useAppContext from "../../Contexts/useAppContext";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import { Link, useParams } from "react-router";
+import getUserFromDB from "../../TanStackAPIs/getUserFromDB";
+import TableRow from "../../Components/TableRow/TableRow";
 
 
 const CommentsTable = () => {
     const param = useParams()
     const axiosSecure = useAxiosSecure();
     const { user } = useAppContext();
+    const { userFromDB } = getUserFromDB();
     const [comments, setComments] = useState([]);
     const [totalComments, setTotalComments] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
-    const [feedback, setFeedback] = useState("")
 
+    const [fullComment, setFullComment] = useState("");
+    // console.log(userFromDB);
     const CommentsPerPage = 5;
     const totalPages = Math.ceil(totalComments / CommentsPerPage);
     const pages = [...Array(totalPages).keys()];
-
-    console.log(totalComments);
 
     useEffect(() => {
         const fetchTotalComments = async () => {
@@ -37,29 +39,45 @@ const CommentsTable = () => {
 
 
     const fetchComments = async () => {
-
-        try {
-            const skip = (currentPage - 1);
-            const { data } = await axiosSecure.get(
-                `/comments?postId=${param.postId}&page=${skip}&size=${CommentsPerPage}`
-            );
-            setComments(data);
-        } catch (error) {
-            console.error("Error fetching Comments:", error);
+        if (userFromDB?._id) {
+            try {
+                const skip = (currentPage - 1);
+                const { data } = await axiosSecure.get(
+                    `/comments?postId=${param.postId}&page=${skip}&size=${CommentsPerPage}&userId=${userFromDB?._id}`
+                );
+                setComments(data);
+            } catch (error) {
+                console.error("Error fetching Comments:", error);
+            }
         }
 
     };
 
     useEffect(() => {
         fetchComments();
-    }, [currentPage, totalPages]);
+    }, [currentPage, totalPages, userFromDB?._id]);
+
+
+    
 
     console.log(comments);
-
-
     return (
         <div className="w-full h-full flex flex-col items-center">
             <h1 className="text-4xl mt-10">See all your Posts</h1>
+            {fullComment && (
+                <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+                        <h2 className="text-lg font-bold mb-4">Full Comment</h2>
+                        <p className="mb-6">{fullComment}</p>
+                        <button
+                            onClick={()=>setFullComment("")}
+                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
             <div className="w-[60%] p-6 mt-10 bg-gray-100">
                 <div className="overflow-x-auto w-full">
                     <table className="table w-full">
@@ -72,33 +90,16 @@ const CommentsTable = () => {
                             </tr>
                         </thead>
                         <tbody className="">
-                            {comments.map((comment, index) => (
-                                <tr className="" key={comment._id}>
-                                    <td>{(currentPage - 1) * CommentsPerPage + index + 1}</td>
-                                    <td>{comment.content}</td>
-
-                                    <td className="flex justify-center">
-                                        <select
-                                            value={feedback}
-                                            onChange={(e)=>setFeedback(e.target.value)}
-                                        >
-                                            <option value="">select feedback...</option>
-                                            <option value="false-info">False inFormation</option>
-                                            <option value="irr-cont">Irrelevent content</option>
-                                            <option value="recist">Recist</option>
-                                            <option value="violent">violent activity</option>
-                                        </select>
-                                    </td>
-                                    <td >
-                                        <span className="flex justify-center">
-                                            <button
-                                                className="btn btn-sm btn-primary">
-                                                Report
-                                            </button>
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
+                            {comments.map((comment, index) => (<TableRow 
+                            key={comment._id}
+                            userFromDB={userFromDB} 
+                            currentPage={currentPage} 
+                            index={index} 
+                            comment={comment} 
+                            setFullComment={setFullComment}
+                            refresh={fetchComments}
+                            >
+                            </TableRow>))}
                         </tbody>
                     </table>
                 </div>
