@@ -65,6 +65,7 @@ async function run() {
         const postsCollection = LinkHiveDB.collection("Posts");
         const interactionsCollection = LinkHiveDB.collection('Interactions');
         const commentsCollection = LinkHiveDB.collection('Comments');
+        const reportsCollection = LinkHiveDB.collection('Reports');
         const subscriptionCollection = LinkHiveDB.collection('Subscription');
 
 
@@ -288,7 +289,7 @@ async function run() {
 
         app.get('/comments', async (req, res) => {
             try {
-                const { postId, size, page } = req.query;
+                const { postId, size, page, userId } = req.query;
 
                 const pipeline = [
                     {
@@ -321,13 +322,21 @@ async function run() {
                     { $sort: { createdAt: -1 } }
                 ]
 
-                if(size && page){
+                if (size && page) {
                     pipeline.push(
                         {
-                            $skip: size*page
+                            $skip: size * page
                         },
                         {
-                            $limit: size*1
+                            $limit: size * 1
+                        },
+                        {
+                            $project: {
+                                _id: 1,
+                                content: 1,
+                                "userDetails.name" : 1,
+                                "userDetails.email": 1,
+                            }
                         }
                     )
                 }
@@ -339,6 +348,25 @@ async function run() {
                 const comments = await commentsCollection
                     .aggregate(pipeline)
                     .toArray();
+                if (userId) {
+                    const commentsIds = comments.map((comment) => comment._id.toString())
+                    const reports = await reportsCollection.find({
+                        reportedById: userId,
+                        targetId: {$in: commentsIds},
+
+                    }).toArray();
+                    console.log(reports);
+                    const commentswithReports = comments.map((comment) => {
+                        const reported = reports.find(
+                            (report) => report.targetId.toString() === comment._id.toString()
+                        );
+                        return {
+                            ...comment,
+                            userReport: reported
+                        };
+                    });
+                    return res.send(commentswithReports);
+                }
 
                 return res.status(200).json(comments);
 
@@ -348,7 +376,25 @@ async function run() {
             }
         });
 
-        
+        app.post('/report', verifyToken, async (req, res) => {
+            const { reportedById, reportedByEmail, type, targetId, reportReason } = req.body;
+            if (req?.user.email !== reportedByEmail) {
+                return res.status(403).json({ message: 'Forbidden' })
+            }
+            const response = await reportsCollection.insertOne({
+                reportedById, reportedByEmail, type, targetId, reportReason,
+                adminAction: "pending",
+                reportedAt: new Date()
+            })
+            res.send(response);
+        })
+
+        app.delete('/report', verifyToken, async (req, res) => {
+            const { reportId } = req.query;
+            const userEmail = req?.user.email
+            const deleteResponse = await reportsCollection.deleteOne({ _id: new ObjectId(reportId), reportedByEmail:userEmail })
+            res.send(deleteResponse)
+        })
 
 
         app.get("/create-payment-intent", async (req, res) => {
