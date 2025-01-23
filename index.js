@@ -280,10 +280,15 @@ async function run() {
             }
         });
 
-        app.get('/comments/:postId', async (req, res) => {
+        app.get('/commentscount', async (req, res) => {
+            const { postId } = req.query;
+            const totalCount = await commentsCollection.countDocuments({ postId })
+            res.send({ totalCount });
+        })
+
+        app.get('/comments', async (req, res) => {
             try {
-                const { postId } = req.params;
-                const { includeReplies = false } = req.query;
+                const { postId, size, page } = req.query;
 
                 const pipeline = [
                     {
@@ -316,37 +321,35 @@ async function run() {
                     { $sort: { createdAt: -1 } }
                 ]
 
+                if(size && page){
+                    pipeline.push(
+                        {
+                            $skip: size*page
+                        },
+                        {
+                            $limit: size*1
+                        }
+                    )
+                }
+
                 if (!postId) {
                     return res.status(400).json({ error: "postId is required." });
                 }
 
-                if (includeReplies === 'true') {
-                    const comments = await commentsCollection.aggregate([
-                        { $match: { postId, parentId: null } },
-                        {
-                            $lookup: {
-                                from: 'Comments',
-                                localField: '_id',
-                                foreignField: 'parentId',
-                                as: 'replies',
-                            },
-                        },
-                        { $sort: { createdAt: -1 } },
-                    ]).toArray();
+                const comments = await commentsCollection
+                    .aggregate(pipeline)
+                    .toArray();
 
-                    return res.status(200).json(comments);
-                } else {
-                    const comments = await commentsCollection
-                        .aggregate(pipeline)
-                        .toArray();
+                return res.status(200).json(comments);
 
-                    return res.status(200).json(comments);
-                }
             } catch (error) {
                 console.error(error);
                 res.status(500).json({ error: "An error occurred while fetching comments." });
             }
         });
+
+        
+
 
         app.get("/create-payment-intent", async (req, res) => {
             try {
@@ -379,19 +382,19 @@ async function run() {
                     membership: true
                 }
             }, { upsert: false })
-            res.send({ message: "Successfully subscribed amd become a member"})
+            res.send({ message: "Successfully subscribed amd become a member" })
         })
 
         app.get("/postsbyuser", async (req, res) => {
             const { userEmail, page, size } = req.query;
-            const posts = await postsCollection.find({ authorEmail: userEmail }).skip(page*size).limit(size*1).toArray()
+            const posts = await postsCollection.find({ authorEmail: userEmail }).skip(page * size).limit(size * 1).toArray()
             res.send(posts)
         })
 
         app.get("/postscountbyuser", async (req, res) => {
             const { userEmail } = req.query;
             const postsCount = await postsCollection.countDocuments({ authorEmail: userEmail })
-            res.send({totalCount: postsCount})
+            res.send({ totalCount: postsCount })
         })
 
 
