@@ -1,67 +1,61 @@
 import React, { useEffect, useState } from "react";
 import useAppContext from "../../Contexts/useAppContext";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
-import { Link } from "react-router";
+import { Link, useParams } from "react-router";
 
-const PostsTableWithPagination = () => {
+
+const CommentsTable = () => {
+    const param = useParams()
     const axiosSecure = useAxiosSecure();
     const { user } = useAppContext();
-    const [posts, setPosts] = useState([]);
-    const [totalPosts, setTotalPosts] = useState(0);
+    const [comments, setComments] = useState([]);
+    const [totalComments, setTotalComments] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
+    const [feedback, setFeedback] = useState("")
 
-    const postsPerPage = 5; 
-    const totalPages = Math.ceil(totalPosts / postsPerPage);
+    const CommentsPerPage = 5;
+    const totalPages = Math.ceil(totalComments / CommentsPerPage);
     const pages = [...Array(totalPages).keys()];
 
+    console.log(totalComments);
 
     useEffect(() => {
-        const fetchTotalPosts = async () => {
-            if (user?.email) {
-                try {
-                    const { data } = await axiosSecure.get(
-                        `/postscountbyuser?userEmail=${user.email}`
-                    );
-                    setTotalPosts(data.totalCount); 
-                } catch (error) {
-                    console.error("Error fetching total posts:", error);
-                }
+        const fetchTotalComments = async () => {
+            try {
+                const { data } = await axiosSecure.get(
+                    `/commentscount?postId=${param.postId}`
+                );
+                setTotalComments(data.totalCount);
+            } catch (error) {
+                console.error("Error fetching total Comments:", error);
             }
+
         };
 
-        fetchTotalPosts();
-    }, [user?.email, axiosSecure]);
+        fetchTotalComments();
+    }, [user?.email]);
 
-    const fetchPosts = async () => {
-        if (user?.email) {
-            try {
-                const skip = (currentPage - 1);
-                const { data } = await axiosSecure.get(
-                    `/postsbyuser?userEmail=${user.email}&page=${skip}&size=${postsPerPage}`
-                );
-                setPosts(data);
-            } catch (error) {
-                console.error("Error fetching posts:", error);
-            }
+
+    const fetchComments = async () => {
+
+        try {
+            const skip = (currentPage - 1);
+            const { data } = await axiosSecure.get(
+                `/comments?postId=${param.postId}&page=${skip}&size=${CommentsPerPage}`
+            );
+            setComments(data);
+        } catch (error) {
+            console.error("Error fetching Comments:", error);
         }
+
     };
+
     useEffect(() => {
+        fetchComments();
+    }, [currentPage, totalPages]);
 
-        fetchPosts();
-    }, [user?.email, currentPage, axiosSecure]);
+    console.log(comments);
 
-    const handleDelete = async (postId) => {
-        const { data } = await axiosSecure.delete(`/post?postId=${postId}`);
-        fetchPosts();
-
-    }
-
-
-    const handlePageChange = (newPage) => {
-        if (newPage >= 1 && newPage <= totalPages) {
-            setCurrentPage(newPage);
-        }
-    };
 
     return (
         <div className="w-full h-full flex flex-col items-center">
@@ -72,29 +66,34 @@ const PostsTableWithPagination = () => {
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Title</th>
-                                <th><span className="flex justify-center">Total Votes</span></th>
-                                <th className="flex justify-center">Actions</th>
-                                <th><span className="flex justify-center">Delete</span></th>
+                                <th>Content</th>
+                                <th className="flex justify-center">Feedback</th>
+                                <th><span className="flex justify-center">Report</span></th>
                             </tr>
                         </thead>
                         <tbody className="">
-                            {posts.map((post, index) => (
-                                <tr className="" key={post._id}>
-                                    <td>{(currentPage - 1) * postsPerPage + index + 1}</td>
-                                    <td>{post.title}</td>
-                                    <td><span className="flex justify-center">{post.upVotes + post.downVotes}</span></td>
+                            {comments.map((comment, index) => (
+                                <tr className="" key={comment._id}>
+                                    <td>{(currentPage - 1) * CommentsPerPage + index + 1}</td>
+                                    <td>{comment.content}</td>
+
                                     <td className="flex justify-center">
-                                        <Link to={`/dashboard/comments/${post._id}`} className="btn btn-sm btn-primary">
-                                            See Comments ({post.commentCount})
-                                        </Link>
+                                        <select
+                                            value={feedback}
+                                            onChange={(e)=>setFeedback(e.target.value)}
+                                        >
+                                            <option value="">select feedback...</option>
+                                            <option value="false-info">False inFormation</option>
+                                            <option value="irr-cont">Irrelevent content</option>
+                                            <option value="recist">Recist</option>
+                                            <option value="violent">violent activity</option>
+                                        </select>
                                     </td>
                                     <td >
                                         <span className="flex justify-center">
                                             <button
-                                                onClick={()=>handleDelete(post._id)}
                                                 className="btn btn-sm btn-primary">
-                                                Delete
+                                                Report
                                             </button>
                                         </span>
                                     </td>
@@ -139,4 +138,4 @@ const PostsTableWithPagination = () => {
     );
 };
 
-export default PostsTableWithPagination;
+export default CommentsTable;

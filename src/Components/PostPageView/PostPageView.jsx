@@ -32,7 +32,7 @@ const PostPageView = ({post, userId, refreshPost}) => {
 
         const fetchComments = async () => {
             if (_id) {
-                const { data } = await axiosPublic.get(`/comments/${_id}`);
+                const { data } = await axiosPublic.get(`/comments?postId=${_id}`);
                 setComments(data);
             } 
         };

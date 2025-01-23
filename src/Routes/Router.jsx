@@ -11,6 +11,7 @@ import LoadingPage from "../Pages/LoadingPage/LoadingPage";
 import MyProfile from "../Pages/MyProfile/MyProfile";
 import PaymentPage from "../Pages/PaymentPage/PaymentPage"
 import MyPosts from "../Pages/MyPosts/MyPosts";
+import CommentsTable from "../Pages/CommentsTable/CommentsTable";
 
 
 const router = createBrowserRouter([
@@ -59,6 +60,10 @@ const router = createBrowserRouter([
             {
                 path: 'subscribe',
                 element: <PaymentPage/>
+            },
+            {
+                path: 'comments/:postId',
+                element: <CommentsTable/>
             },
         ]
     }
