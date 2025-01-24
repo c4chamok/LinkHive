@@ -70,6 +70,7 @@ async function run() {
             if(userFromDB.role !== 'admin'){
                 return res.status(403).send({ message: 'forbidden access' });
             }
+            req.user.adminId = userFromDB._id
             next();
         }
 
@@ -118,9 +119,27 @@ async function run() {
         })
 
         app.get('/allusers', verifyToken, verifyAdmin, async (req, res) => {
-            const { size, page } = req.query;
-            const allUsers = await usersCollection.find({}).skip(page*size).limit(size*1).toArray();
+            const { size, page, searchText } = req.query;
+            const query = searchText? { name: { $regex: searchText, $options: 'i' } }: {}
+            const allUsers = await usersCollection.find(query).skip(page*size).limit(size*1).toArray();
             res.send(allUsers);
+        })
+
+        app.get('/togglerole', verifyToken, verifyAdmin, async (req, res) => {
+            const { userId } = req.query;
+            const userObjectId = { _id: new ObjectId(userId) }
+            if(req.user.adminId === userId){
+                return res.send({message : "Can't Change Your Own role"})
+            }
+            const userData = await usersCollection.findOne(userObjectId)
+            const newRole = userData?.role === "admin" ? "user" : "admin";
+            const updatedDoc = {
+                $set: {
+                    role: newRole 
+                }
+            }
+            const updateResponse = await usersCollection.updateOne(userObjectId,updatedDoc)
+            res.send(updateResponse)
         })
 
         app.post('/post', verifyToken, async (req, res) => {
@@ -281,7 +300,7 @@ async function run() {
                         $set: {
                             commented: true
                         }
-                    })
+                    },{ upsert:true })
                 }
 
                 res.status(201).json({
@@ -399,6 +418,15 @@ async function run() {
                 reportedAt: new Date()
             })
             res.send(response);
+        })
+        app.get('/report', verifyToken, verifyAdmin, async (req, res) => {
+            const { page, size } = req.body;
+            const response = await reportsCollection.find().skip(size*page).limit(size*1).sort({reportedAt: -1}).toArray()
+            res.send(response);
+        })
+        app.get('/reportscount', verifyToken, verifyAdmin, async (req, res) => {
+            const response = await reportsCollection.estimatedDocumentCount()
+            res.send({totalCount: response});
         })
 
         app.delete('/report', verifyToken, async (req, res) => {
