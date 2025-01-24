@@ -66,8 +66,8 @@ async function run() {
 
         const verifyAdmin = async (req, res, next) => {
             const userEmail = req.user.email;
-            const userFromDB = await usersCollection.findOne({email: userEmail})
-            if(userFromDB.role !== 'admin'){
+            const userFromDB = await usersCollection.findOne({ email: userEmail })
+            if (userFromDB.role !== 'admin') {
                 return res.status(403).send({ message: 'forbidden access' });
             }
             req.user.adminId = userFromDB._id
@@ -93,7 +93,7 @@ async function run() {
                 postsCount: 0,
                 commentCount: 0
             }
-            
+
             const query = { email: req.user.email }
             const userData = await usersCollection.findOne(query)
             if (userData) {
@@ -111,34 +111,34 @@ async function run() {
             }
         })
 
-        app.get('/userscount', verifyToken, verifyAdmin, async (req, res) => { 
+        app.get('/userscount', verifyToken, verifyAdmin, async (req, res) => {
             const totalUsersCount = await usersCollection.estimatedDocumentCount();
             if (totalUsersCount) {
-                return res.send({totalCount: totalUsersCount})
+                return res.send({ totalCount: totalUsersCount })
             }
         })
 
         app.get('/allusers', verifyToken, verifyAdmin, async (req, res) => {
             const { size, page, searchText } = req.query;
-            const query = searchText? { name: { $regex: searchText, $options: 'i' } }: {}
-            const allUsers = await usersCollection.find(query).skip(page*size).limit(size*1).toArray();
+            const query = searchText ? { name: { $regex: searchText, $options: 'i' } } : {}
+            const allUsers = await usersCollection.find(query).skip(page * size).limit(size * 1).toArray();
             res.send(allUsers);
         })
 
         app.get('/togglerole', verifyToken, verifyAdmin, async (req, res) => {
             const { userId } = req.query;
             const userObjectId = { _id: new ObjectId(userId) }
-            if(req.user.adminId === userId){
-                return res.send({message : "Can't Change Your Own role"})
+            if (req.user.adminId === userId) {
+                return res.send({ message: "Can't Change Your Own role" })
             }
             const userData = await usersCollection.findOne(userObjectId)
             const newRole = userData?.role === "admin" ? "user" : "admin";
             const updatedDoc = {
                 $set: {
-                    role: newRole 
+                    role: newRole
                 }
             }
-            const updateResponse = await usersCollection.updateOne(userObjectId,updatedDoc)
+            const updateResponse = await usersCollection.updateOne(userObjectId, updatedDoc)
             res.send(updateResponse)
         })
 
@@ -185,7 +185,7 @@ async function run() {
                     postsCount: userPostCount
                 }
             }
-            const userUpdateResponse = await usersCollection.updateOne({ email: userEmail  }, updatedDoc, { upsert: false })
+            const userUpdateResponse = await usersCollection.updateOne({ email: userEmail }, updatedDoc, { upsert: false })
 
             res.send(response)
         })
@@ -300,7 +300,7 @@ async function run() {
                         $set: {
                             commented: true
                         }
-                    },{ upsert:true })
+                    }, { upsert: true })
                 }
 
                 res.status(201).json({
@@ -366,7 +366,7 @@ async function run() {
                             $project: {
                                 _id: 1,
                                 content: 1,
-                                "userDetails.name" : 1,
+                                "userDetails.name": 1,
                                 "userDetails.email": 1,
                             }
                         }
@@ -384,7 +384,7 @@ async function run() {
                     const commentsIds = comments.map((comment) => comment._id.toString())
                     const reports = await reportsCollection.find({
                         reportedById: userId,
-                        targetId: {$in: commentsIds},
+                        targetId: { $in: commentsIds },
 
                     }).toArray();
                     const commentswithReports = comments.map((comment) => {
@@ -420,20 +420,69 @@ async function run() {
             res.send(response);
         })
         app.get('/report', verifyToken, verifyAdmin, async (req, res) => {
-            const { page, size } = req.body;
-            const response = await reportsCollection.find().skip(size*page).limit(size*1).sort({reportedAt: -1}).toArray()
+            const { page, size } = req.query;
+            const response = await reportsCollection.aggregate([
+                {
+                    $addFields: {
+                        targetId: { $toObjectId: "$targetId" }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'Comments',
+                        localField: 'targetId',
+                        foreignField: '_id',
+                        as: 'content',
+                    },
+                },
+                {
+                    $unwind: {
+                        path: "$content",
+                        preserveNullAndEmptyArrays: true
+                    }
+                },{
+                    $skip: size * page
+                },
+                {
+                    $limit: size * 1
+                },
+                {
+                    $project: {
+                        "content.postId": 1,   
+                        "reportedByEmail": 1,   
+                        "reportReason": 1,   
+                        "type": 1,   
+                        "reportedAt": 1,
+                        "adminAction": 1
+                    }
+                },
+                { $sort: { reportedAt: -1 } }
+                                           
+                
+            ]).toArray()
             res.send(response);
         })
         app.get('/reportscount', verifyToken, verifyAdmin, async (req, res) => {
             const response = await reportsCollection.estimatedDocumentCount()
-            res.send({totalCount: response});
+            res.send({ totalCount: response });
         })
 
         app.delete('/report', verifyToken, async (req, res) => {
             const { reportId } = req.query;
             const userEmail = req?.user.email
-            const deleteResponse = await reportsCollection.deleteOne({ _id: new ObjectId(reportId), reportedByEmail:userEmail })
+            const deleteResponse = await reportsCollection.deleteOne({ _id: new ObjectId(reportId), reportedByEmail: userEmail })
             res.send(deleteResponse)
+        })
+        app.delete('/delete-reported', verifyToken, verifyAdmin, async (req, res) => {
+            const { reportId } = req.query;
+            const { targetId, type } = await reportsCollection.findOne({_id: new ObjectId(reportId)})
+            const commentdelete = await commentsCollection.deleteOne({ _id: new ObjectId(targetId) })
+            const updateReport = await reportsCollection.updateOne({_id: new ObjectId(reportId)},{
+                $set: {
+                    adminAction: "resolved"
+                }
+            })
+            res.send(commentdelete)
         })
 
 
