@@ -3,6 +3,7 @@ import useAxiosSecure from '../../Hooks/useAxiosSecure';
 import useAppContext from '../../Contexts/useAppContext';
 import getReportedActivities from '../../TanStackAPIs/getReportedActivities';
 import ReportsRow from '../../Components/ReportsRow/ReportsRow';
+import { all } from 'axios';
 
 const ReportedActivityPage = () => {
     const axiosSecure = useAxiosSecure();
@@ -45,7 +46,7 @@ const ReportedActivityPage = () => {
         <div className="w-full h-full flex flex-col items-center">
             <h1 className="text-4xl mt-10">Total Reports {totalReports}</h1>
 
-            <div className="w-[70%] p-6 mt-10 bg-gray-100">
+            <div className="w-[80%] p-6 mt-10 bg-gray-100">
                 <div className="overflow-x-auto w-full mt-5">
                     <table className="table w-full">
                         <thead>
@@ -55,6 +56,7 @@ const ReportedActivityPage = () => {
                                 <th className="flex justify-center">Reported By</th>
                                 <th><span className="flex justify-center">Feedback</span></th>
                                 <th><span className="flex justify-center">Time</span></th>
+                                <th><span className="flex justify-center">Content link</span></th>
                                 <th><span className="flex justify-center">Action</span></th>
                             </tr>
                         </thead>

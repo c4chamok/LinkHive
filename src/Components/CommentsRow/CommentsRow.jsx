@@ -65,7 +65,7 @@ const CommentsRow = ({ comment, setFullComment, currentPage, index, userFromDB, 
                             className={`btn btn-sm btn-error `}>
                             Cancel report
                         </button> :
-
+                        comment?.userReport?.adminAction === "pending"? <span className='p-3 bg-green-400'>{comment?.userReport?.adminAction}</span> :
                         <button
                             onClick={() => handleReport(comment?._id)}
                             className={`btn btn-sm btn-primary 
