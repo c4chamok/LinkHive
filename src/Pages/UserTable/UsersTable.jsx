@@ -32,9 +32,14 @@ const UsersTable = () => {
         fetchTotalusers();
     }, []);
 
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= totalPages) {
+            setCurrentPage(newPage);
+        }
+    };
+
     const { allUsers, refetch } = getAllUsers(skip, usersPerPage, searchText);
 
-    console.log(allUsers);
     return (
         <div className="w-full h-full flex flex-col items-center">
             <h1 className="text-4xl mt-10">Manage all Users</h1>

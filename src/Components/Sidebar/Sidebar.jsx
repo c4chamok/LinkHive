@@ -14,6 +14,7 @@ const Sidebar = () => {
                     userFromDB?.role === 'admin' &&
                     <>
                         <NavLink to='allusers' className={({ isActive }) => `pl-3 h-10 flex items-center text-white font-bold ${isActive && "border-l-[10px] border-[#3f5dbdf5]"}`}>Users Data</NavLink>
+                        <NavLink to='allreports' className={({ isActive }) => `pl-3 h-10 flex items-center text-white font-bold ${isActive && "border-l-[10px] border-[#3f5dbdf5]"}`}>Reported Activities</NavLink>
                     </>
                 }
                 <NavLink to='profile' className={({ isActive }) => `pl-3 h-10 flex items-center text-white font-bold ${isActive && "border-l-[10px] border-[#3f5dbdf5]"}`}>My Profile</NavLink>

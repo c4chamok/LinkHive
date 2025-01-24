@@ -58,7 +58,11 @@ const CommentsTable = () => {
     }, [currentPage, totalPages, userFromDB?._id]);
 
 
-    
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= totalPages) {
+            setCurrentPage(newPage);
+        }
+    };
 
     console.log(comments);
     return (
