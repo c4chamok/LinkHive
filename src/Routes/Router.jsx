@@ -12,6 +12,9 @@ import MyProfile from "../Pages/MyProfile/MyProfile";
 import PaymentPage from "../Pages/PaymentPage/PaymentPage"
 import MyPosts from "../Pages/MyPosts/MyPosts";
 import CommentsTable from "../Pages/CommentsTable/CommentsTable";
+import PrivateRoute from "./PrivateRoute";
+import AdminRoute from "./AdminRoute";
+import UsersTable from "../Pages/UserTable/UsersTable";
 
 
 const router = createBrowserRouter([
@@ -47,23 +50,27 @@ const router = createBrowserRouter([
             },
             {
                 path: 'profile',
-                element: <MyProfile/>
+                element: <PrivateRoute><MyProfile/></PrivateRoute>
             },
             {
                 path: 'addpost',
-                element: <AddPost/>
+                element: <PrivateRoute><AddPost/></PrivateRoute>
             },
             {
                 path: 'myposts',
-                element: <MyPosts/>
+                element: <PrivateRoute><MyPosts/></PrivateRoute>
             },
             {
                 path: 'subscribe',
-                element: <PaymentPage/>
+                element: <PrivateRoute><PaymentPage/></PrivateRoute>
             },
             {
                 path: 'comments/:postId',
-                element: <CommentsTable/>
+                element:  <PrivateRoute><CommentsTable/></PrivateRoute>
+            },
+            {
+                path: 'allusers',
+                element:  <AdminRoute><UsersTable/></AdminRoute>
             },
         ]
     }

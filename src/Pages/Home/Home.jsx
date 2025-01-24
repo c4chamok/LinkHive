@@ -7,7 +7,6 @@ import getUserFromDB from '../../TanStackAPIs/getUserFromDB';
 const Home = () => {
    const { allPosts, refetch } = getAllPosts()
    const { userFromDB } = getUserFromDB()
-    console.log(allPosts,userFromDB);
     return (
         <div className='flex flex-col items-center'>
             <div className='w-6/12'>

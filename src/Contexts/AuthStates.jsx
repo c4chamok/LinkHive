@@ -12,6 +12,7 @@ const AuthStates = () => {
     const [loading, setLoading] = useState(true)
     const [updated, setUpdated] = useState("")
     const [isNew, setIsNew] = useState(false)
+    const [userFromDB, setUserFromDB] = useState(null)
     const axiosPublic = useAxiosPublic();
 
 
@@ -66,30 +67,43 @@ const AuthStates = () => {
             })
     }
 
+    const token = localStorage.getItem('access-token')
+    const refetchUser = async () => {
+        if(user?.email && token){
+            const { data } = await axiosPublic('/user',{ headers: { authorization : `Bearer ${token}`} })
+            setUserFromDB(data)
+        }
+    }
+
+    useEffect(()=>{
+        refetchUser()
+    },[user?.email,token])
+
     useEffect(() => {
         const authUnmount = onAuthStateChanged(auth, async (currentUser) => {
             setUser(currentUser)
+            console.log(currentUser);
             try {
                 if (currentUser?.email) {
                     await axiosPublic.post('/jwt', {
                         email: currentUser.email
-                    }, {
-                        withCredentials: true
-                    });
+                    }).then(res => {
+                        if (res.data.token) {
+                            localStorage.setItem('access-token', res.data.token);
+                        }
+                    })
                     if (currentUser?.photoURL) {
+                        const token = localStorage.getItem('access-token')
                         const response = await axiosPublic.post('/user', {
                             email: currentUser?.email,
                             name: currentUser?.displayName,
                             photo: currentUser?.photoURL
-                        }, { withCredentials: true }) 
+                        }, { headers: { authorization : `Bearer ${token}` } }) 
                     }
                     setLoading(false);
                 } else {
-                    axiosPublic.delete('/jwt', {withCredentials: true})
-                        .then((res) => {
-                            console.log('logout', res.data)
-                            setLoading(false);
-                        });
+                    localStorage.removeItem('access-token');
+                    setLoading(false);
                 }
             } finally {
                 setLoading(false);
@@ -100,7 +114,7 @@ const AuthStates = () => {
         return () => authUnmount()
     }, [updated])
 
-    return { login, register, logout, user, loading, setLoading, updateUserProfile, googleSignIn, setUser }
+    return { login, register, logout, user, loading, setLoading, updateUserProfile, googleSignIn, setUser, userFromDB, refetchUser }
 };
 
 export default AuthStates;

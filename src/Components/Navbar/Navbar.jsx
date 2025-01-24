@@ -13,7 +13,6 @@ const Navbar = () => {
     const [isNavBg, setIsNavBg] = useState();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef(null);
-    console.log(user,userFromDB);
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);

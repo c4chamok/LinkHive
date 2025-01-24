@@ -3,7 +3,7 @@ import useAppContext from "../../Contexts/useAppContext";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import { Link, useParams } from "react-router";
 import getUserFromDB from "../../TanStackAPIs/getUserFromDB";
-import TableRow from "../../Components/TableRow/TableRow";
+import CommentsRow from "../../Components/CommentsRow/CommentsRow";
 
 
 const CommentsTable = () => {
@@ -65,8 +65,8 @@ const CommentsTable = () => {
         <div className="w-full h-full flex flex-col items-center">
             <h1 className="text-4xl mt-10">See all your Posts</h1>
             {fullComment && (
-                <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+                <div className="fixed inset-0 z-30 flex items-center justify-center bg-gray-800 bg-opacity-50">
+                    <div className="bg-white  p-6 rounded-lg shadow-lg max-w-md w-full">
                         <h2 className="text-lg font-bold mb-4">Full Comment</h2>
                         <p className="mb-6">{fullComment}</p>
                         <button
@@ -90,7 +90,7 @@ const CommentsTable = () => {
                             </tr>
                         </thead>
                         <tbody className="">
-                            {comments.map((comment, index) => (<TableRow 
+                            {comments.map((comment, index) => (<CommentsRow 
                             key={comment._id}
                             userFromDB={userFromDB} 
                             currentPage={currentPage} 
@@ -99,7 +99,7 @@ const CommentsTable = () => {
                             setFullComment={setFullComment}
                             refresh={fetchComments}
                             >
-                            </TableRow>))}
+                            </CommentsRow>))}
                         </tbody>
                     </table>
                 </div>

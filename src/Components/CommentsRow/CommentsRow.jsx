@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import useAxiosSecure from '../../Hooks/useAxiosSecure';
 
-const TableRow = ({ comment, setFullComment, currentPage, index, userFromDB, refresh }) => {
+const CommentsRow = ({ comment, setFullComment, currentPage, index, userFromDB, refresh }) => {
     console.log(comment);
     const [feedback, setFeedback] = useState("");
     const axiosSecure = useAxiosSecure();
@@ -79,4 +79,4 @@ const TableRow = ({ comment, setFullComment, currentPage, index, userFromDB, ref
     );
 };
 
-export default TableRow;
+export default CommentsRow;
