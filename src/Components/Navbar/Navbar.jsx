@@ -7,9 +7,7 @@ import getUserFromDB from '../../TanStackAPIs/getUserFromDB';
 
 
 const Navbar = () => {
-    const { user, logout, showSearchbar, setShowSearchbar } = useAppContext()
-    const { userFromDB } = getUserFromDB()
-    // const userFromDB = null;
+    const { user, logout, userFromDB, showSearchbar, setShowSearchbar } = useAppContext()
     const [isNavBg, setIsNavBg] = useState();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef(null);
@@ -49,34 +47,10 @@ const Navbar = () => {
     }, []);
 
     return (
-        <div className={`flex sticky top-0 z-10 ${isNavBg ? "bg-gradient-to-r from-green-100 to-slate-100" : "bg-slate-100/50"}  flex-col items-center`}>
+        <div className={`flex sticky top-0 z-10 ${isNavBg ? "bg-gradient-to-r from-[#babaee] to-slate-100" : "bg-slate-100/50"}  flex-col items-center`}>
             <div className="navbar w-[98%] justify-between relative z-10 ">
                 <div className="flex items-center md:gap-5">
-                    <Link to={'/'} className="text-2xl font-bold bg-gradient-text mr-3 text-green-400">RatePal</Link>
-                </div>
-                <div className='lg:flex hidden items-center gap-2'>
-                    <NavLink
-                        className='px-4 py-2 font-semibold hover:bg-green-100 hover:text-gray-800 rounded-[50px] '
-                        to={'/'}>Home</NavLink>
-                    <NavLink
-                        className='px-4 py-2 font-semibold hover:bg-green-100 hover:text-gray-800 rounded-[50px] '
-                        to={'/demo'}>Services</NavLink>
-                    <NavLink
-                        className='px-4 py-2 font-semibold hover:bg-green-100 hover:text-gray-800 rounded-[50px] '
-                        to={'/aboutus'}>About</NavLink>
-                    {user &&
-                        <div className='flex items-center gap-2'>
-                            <NavLink
-                                className='px-4 py-2 font-semibold hover:bg-green-100 hover:text-gray-800 rounded-[50px] '
-                                to={'/addservice'}> Add Service</NavLink>
-                            <NavLink
-                                className='px-4 py-2 font-semibold hover:bg-green-100 hover:text-gray-800 rounded-[50px]  '
-                                to={'/myservices'}>My Services</NavLink>
-                            <NavLink
-                                className='px-4 py-2 font-semibold hover:bg-green-100 hover:text-gray-800 rounded-[50px] '
-                                to={'/myreviews'}>My Reviews</NavLink>
-                        </div>
-                    }
+                    <Link to={'/'} className="text-2xl font-bold bg-gradient-text mr-3 text-green-400">LinkHive</Link>
                 </div>
                 <div className="relative flex gap-2 items-center">
                     {!user && <div className='flex gap-4 items-center mr-4'>
@@ -110,9 +84,6 @@ const Navbar = () => {
 
                                         className='px-4 py-2 font-semibold hover:bg-green-100 hover:text-gray-800 rounded-[50px] '
                                         to={'/'}>Home</NavLink>
-                                    <NavLink
-                                        className='px-4 py-2 font-semibold hover:bg-green-100 hover:text-gray-800 rounded-[50px] '
-                                        to={'/allservices'}>Services</NavLink>
                                 </div>
                                 {user &&
                                     <div className='flex flex-col'>
