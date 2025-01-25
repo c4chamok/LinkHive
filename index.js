@@ -62,6 +62,7 @@ async function run() {
         const interactionsCollection = LinkHiveDB.collection('Interactions');
         const commentsCollection = LinkHiveDB.collection('Comments');
         const reportsCollection = LinkHiveDB.collection('Reports');
+        const tagsCollection = LinkHiveDB.collection('Tags');
         const subscriptionCollection = LinkHiveDB.collection('Subscription');
 
         const verifyAdmin = async (req, res, next) => {
@@ -111,6 +112,18 @@ async function run() {
             }
         })
 
+        app.get('/adminprofile', verifyToken, verifyAdmin, async (req, res) => {
+            const query = { _id: new ObjectId(req?.user.adminId) }
+            const adminData = await usersCollection.findOne(query);
+            const [usersCount, postsCount, commentsCount] = await Promise.all([
+                usersCollection.estimatedDocumentCount(),
+                postsCollection.estimatedDocumentCount(),
+                commentsCollection.estimatedDocumentCount()
+              ]);
+            res.send({adminData, usersCount, postsCount, commentsCount})
+
+        })
+
         app.get('/userscount', verifyToken, verifyAdmin, async (req, res) => {
             const totalUsersCount = await usersCollection.estimatedDocumentCount();
             if (totalUsersCount) {
@@ -140,6 +153,11 @@ async function run() {
             }
             const updateResponse = await usersCollection.updateOne(userObjectId, updatedDoc)
             res.send(updateResponse)
+        })
+
+        app.get('/tags', verifyToken, async (req, res) => {
+            const readResp = await tagsCollection.find().toArray();
+            res.send(readResp)
         })
 
         app.post('/post', verifyToken, async (req, res) => {
@@ -530,6 +548,12 @@ async function run() {
             const { userEmail } = req.query;
             const postsCount = await postsCollection.countDocuments({ authorEmail: userEmail })
             res.send({ totalCount: postsCount })
+        })
+
+        app.post('/tags', verifyToken, verifyAdmin, async (req, res) => {
+            const { tag } = req.body;
+            const insResponse = await tagsCollection.insertOne({tag})
+            res.send(insResponse)
         })
 
 
