@@ -208,8 +208,13 @@ async function run() {
             res.send(response)
         })
 
+        app.get('/postcount', async (req, res) => {
+            const totalcount = await postsCollection.estimatedDocumentCount();
+            res.send({totalcount})
+        })
+
         app.get('/post', async (req, res) => {
-            const { userId, pid } = req.query;
+            const { userId, pid, searchText, sort, size, page } = req.query;
             const pipeline = [
                 {
                     $addFields: {
@@ -234,13 +239,47 @@ async function run() {
                         "authorData.commentCount": 0,
                     },
                 },
+                {
+                    $skip: size * page
+                },
+                {
+                    $limit: size * 1
+                },
+                
             ];
+            if(sort === 'latest'){
+                pipeline.push(
+                    {
+                        $sort: { createdAt: -1 }
+                    }
+                )
+            }else{
+                pipeline.push(
+                    {
+                        $addFields: {
+                          voteDifference: { $subtract: ["$upVotes", "$downVotes"] }
+                        }
+                      },
+                      {
+                        $sort: { voteDifference: -1 }
+                      }
+                    
+                )
+            }
             if (pid) {
                 pipeline.unshift({
                     $match: {
                         _id: new ObjectId(pid)
                     }
                 })
+            }
+
+            if (searchText) {
+                pipeline.unshift({
+                    $match: {
+                        tags: { $regex: searchText, $options: 'i' }
+                    }
+                });
             }
             const allPosts = await postsCollection.aggregate(pipeline).toArray();
             const postIds = [...new Set(allPosts.map(post => post._id.toString()))]
