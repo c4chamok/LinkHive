@@ -16,6 +16,7 @@ import PrivateRoute from "./PrivateRoute";
 import AdminRoute from "./AdminRoute";
 import UsersTable from "../Pages/UserTable/UsersTable";
 import ReportedActivityPage from "../Pages/ReportedActivityPage/ReportedActivityPage";
+import AdminProfile from "../Pages/AdminProfile/AdminProfile";
 
 
 const router = createBrowserRouter([
@@ -76,6 +77,10 @@ const router = createBrowserRouter([
             {
                 path: 'allreports',
                 element:  <AdminRoute><ReportedActivityPage/></AdminRoute>
+            },
+            {
+                path: 'admin-profile',
+                element:  <AdminRoute><AdminProfile/></AdminRoute>
             },
         ]
     }

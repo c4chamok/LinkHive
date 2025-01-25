@@ -1,30 +1,21 @@
 import React from "react";
 import { FaUserCircle, FaCrown, FaMedal } from "react-icons/fa";
 import getUserFromDB from "../../TanStackAPIs/getUserFromDB";
-import { Link } from "react-router";
+import { Link, Navigate } from "react-router";
 
 const MyProfile = () => {
-    // const user = {
-    //     _id: "678772f6a3c95428c76343f2",
-    //     email: "c4chamok@gmail.com",
-    //     name: "Md Navid Chowdhury",
-    //     profileImage: "https://i.ibb.co.com/KKKkRCN/profile-pic-github.png",
-    //     role: "user",
-    //     badges: ["bronze"],
-    //     membership: false,
-    //     postsCount: 3,
-    //     commentCount: 0,
-    //   };
 
     const { userFromDB: user, refetch } = getUserFromDB()
+
+    if (user?.role === 'admin') return <Navigate to={`/dashboard/admin-profile`}></Navigate>
 
   return (
 
     <div className=" w-full flex justify-center items-center">
       <div className="w-[40%]  bg-white shadow-lg rounded-lg overflow-hidden">
-        {/* Profile Header */}
+
         <div className="flex flex-col items-center p-8 border-b">
-          {/* Profile Image */}
+
           <img
             src={user?.profileImage || "https://via.placeholder.com/150"}
             alt={user?.name}
@@ -38,7 +29,7 @@ const MyProfile = () => {
           </span>
         </div>
 
-        {/* User Stats */}
+
         <div className="p-6 grid grid-cols-2 sm:grid-cols-3 gap-6 text-center">
           <div>
             <p className="text-gray-800 text-2xl font-semibold">{user?.postsCount}</p>
@@ -54,7 +45,7 @@ const MyProfile = () => {
           </div>
         </div>
 
-        {/* Badges Section */}
+
         <div className="px-6 pb-6">
           <h3 className="text-gray-800 font-medium text-lg mb-3">Badges</h3>
           <div className="flex items-center gap-4">
@@ -78,7 +69,6 @@ const MyProfile = () => {
           </div>
         </div>
 
-        {/* Become a Member Button */}
         {!user?.membership && (
           <div className="p-6 border-t">
             <Link to={'/dashboard/subscribe'}

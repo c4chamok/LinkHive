@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import Select from "react-select";
 import axios from "axios";
@@ -12,15 +12,29 @@ const AddPost = () => {
     const { register, handleSubmit, setValue, formState: { errors }, reset } = useForm();
     const [isUploading, setIsUploading] = useState(false);
     const [tags, setTags] = useState([]);
+    const [tagOptions, setTagaOptions] = useState([]);
     const axiosSecure = useAxiosSecure();
     const userPostsCount = userFromDB?.postsCount;
     const isMember = userFromDB?.membership;
-    const tagOptions = [
-        { value: "technology", label: "Technology" },
-        { value: "education", label: "Education" },
-        { value: "health", label: "Health" },
-        { value: "lifestyle", label: "Lifestyle" },
-    ];
+
+    const fetchTags = (params) => {
+            axiosSecure('/tags')
+            .then(res=>{
+                const options = res.data.map(option=>({ value: option.tag.toLowerCase(), label: option.tag }))
+                setTagaOptions(options)
+            });
+        }
+    
+        useEffect(()=>{
+            fetchTags()
+        },[])
+
+    // const tagOptions = [
+    //     { value: "technology", label: "Technology" },
+    //     { value: "education", label: "Education" },
+    //     { value: "health", label: "Health" },
+    //     { value: "lifestyle", label: "Lifestyle" },
+    // ];
 
     const onSubmit = async (data) => {
         try {

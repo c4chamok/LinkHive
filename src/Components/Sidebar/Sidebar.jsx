@@ -13,11 +13,14 @@ const Sidebar = () => {
                 {
                     userFromDB?.role === 'admin' &&
                     <>
+                        <NavLink to='admin-profile' className={({ isActive }) => `pl-3 h-10 flex items-center text-white font-bold ${isActive && "border-l-[10px] border-[#3f5dbdf5]"}`}>AdminProfile</NavLink>
                         <NavLink to='allusers' className={({ isActive }) => `pl-3 h-10 flex items-center text-white font-bold ${isActive && "border-l-[10px] border-[#3f5dbdf5]"}`}>Users Data</NavLink>
                         <NavLink to='allreports' className={({ isActive }) => `pl-3 h-10 flex items-center text-white font-bold ${isActive && "border-l-[10px] border-[#3f5dbdf5]"}`}>Reported Activities</NavLink>
                     </>
                 }
-                <NavLink to='profile' className={({ isActive }) => `pl-3 h-10 flex items-center text-white font-bold ${isActive && "border-l-[10px] border-[#3f5dbdf5]"}`}>My Profile</NavLink>
+                {
+                    userFromDB?.role === 'admin' ||
+                <NavLink to='profile' className={({ isActive }) => `pl-3 h-10 flex items-center text-white font-bold ${isActive && "border-l-[10px] border-[#3f5dbdf5]"}`}>My Profile</NavLink>}
                 <NavLink to='addpost' className={({ isActive }) => `pl-3 h-10 flex items-center text-white font-bold ${isActive && "border-l-[10px] border-[#3f5dbdf5]"}`}> Create a Post</NavLink>
                 <NavLink to='myposts' className={({ isActive }) => `pl-3 h-10 flex items-center text-white font-bold ${isActive && "border-l-[10px] border-[#3f5dbdf5]"}`}> My Posts</NavLink>
             </div>

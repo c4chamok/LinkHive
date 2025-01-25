@@ -27,6 +27,7 @@
     "react-select": "^5.9.0",
     "react-stars": "^2.2.5",
     "react-toastify": "^11.0.2",
+    "recharts": "^2.15.0",
     "sweetalert2": "^11.15.3",
     "swiper": "^11.1.15"
   },
