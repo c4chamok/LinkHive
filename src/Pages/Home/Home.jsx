@@ -17,7 +17,7 @@ const Home = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const { allAnnounces, refetch: refresh } = getAnnounces(0, 20);
     const [tags, setTags] = useState([]);
-
+    document.title = "LinkHive | Home";
     const fetchTags = (params) => {
         axiosPublic('/tags').then(res => setTags(res.data));
     }

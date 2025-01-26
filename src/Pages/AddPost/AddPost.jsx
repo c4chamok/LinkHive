@@ -17,7 +17,7 @@ const AddPost = () => {
     const axiosSecure = useAxiosSecure();
     const userPostsCount = userFromDB?.postsCount;
     const isMember = userFromDB?.membership;
-
+    document.title = "LinkHive | Add Post";
     const fetchTags = () => {
         axiosSecure('/tags')
             .then(res => {

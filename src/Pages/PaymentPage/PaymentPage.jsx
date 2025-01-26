@@ -7,8 +7,8 @@ import CheckoutForm from "../../Components/CheckoutForm/CheckoutForm";
 
 // Replace with your publishable key
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PK);
-
 function App() {
+  document.title = "LinkHive | Subscription";
   return (
     <Elements stripe={stripePromise}>
       <CheckoutForm />

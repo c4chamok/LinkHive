@@ -16,7 +16,7 @@ const ReportedActivityPage = () => {
     const ReportsPerPage = 10;
     const totalPages = Math.ceil(totalReports / ReportsPerPage);
     const pages = [...Array(totalPages).keys()];
-
+    document.title = `LinkHive | Reports`;
     useEffect(() => {
         const fetchTotalReports = async () => {
             try {

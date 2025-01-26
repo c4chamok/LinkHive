@@ -4,7 +4,7 @@ import { useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 
 const axiosSecure = axios.create({
-    baseURL: "http://localhost:5000",
+    baseURL: "https://link-hive-server.vercel.app",
 })
 
 const useAxiosSecure = () => {

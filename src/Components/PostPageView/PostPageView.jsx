@@ -24,6 +24,8 @@ const PostPageView = ({ post, userId, refreshPost }) => {
         createdAt,
         userInteraction,
     } = post;
+
+    document.title = `LinkHive | ${title}`;
     const [voteCount, setVoteCount] = useState({ upVotes, downVotes });
     const [menuOpen, setMenuOpen] = useState(false);
     const [vote, setVote] = useState(userInteraction.vote);

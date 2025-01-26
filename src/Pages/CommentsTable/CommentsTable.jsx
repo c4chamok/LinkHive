@@ -20,7 +20,7 @@ const CommentsTable = () => {
     const CommentsPerPage = 10;
     const totalPages = Math.ceil(totalComments / CommentsPerPage);
     const pages = [...Array(totalPages).keys()];
-
+    document.title = "LinkHive | Comments";
     useEffect(() => {
         const fetchTotalComments = async () => {
             try {

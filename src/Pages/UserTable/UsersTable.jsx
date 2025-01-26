@@ -14,7 +14,7 @@ const UsersTable = () => {
     const [searchText, setSearchText] = useState("");
     
     const skip = (currentPage - 1);
-
+    document.title = `LinkHive | Users`;
     const usersPerPage = 10;
     const totalPages = Math.ceil(totalUsers / usersPerPage);
     const pages = [...Array(totalPages).keys()];

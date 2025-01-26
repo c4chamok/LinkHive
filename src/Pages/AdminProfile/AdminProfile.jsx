@@ -12,7 +12,7 @@ const AdminProfile = () => {
     const usersCount = data?.usersCount;
     const postsCount = data?.postsCount;
     const commentsCount = data?.commentsCount;
-
+    document.title = "LinkHive | Admin Profile";
     const fetchTags = (params) => {
         axiosSecure('/tags').then(res => setTags(res.data));
     }

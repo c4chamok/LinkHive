@@ -12,7 +12,7 @@ const MakeAnnouncement = () => {
     const [totalAnnounces, setTotalAnnounces] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const [openModal, setOpenModal] = useState(false);
-
+    document.title = "LinkHive | Announcement";
     const announcesPerPage = 10;
     const totalPages = Math.ceil(totalAnnounces / announcesPerPage);
     const pages = [...Array(totalPages).keys()];

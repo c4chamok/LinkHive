@@ -9,7 +9,7 @@ const PostsTableWithPagination = () => {
     const [posts, setPosts] = useState([]);
     const [totalPosts, setTotalPosts] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
-
+    document.title = "LinkHive | My Posts";
     const postsPerPage = 10;
     const totalPages = Math.ceil(totalPosts / postsPerPage);
     const pages = [...Array(totalPages).keys()];

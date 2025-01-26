@@ -6,10 +6,10 @@ import useAppContext from "../../Contexts/useAppContext";
 
 const MyProfile = () => {
 
-    const { userFromDB: user, refetch } = useAppContext()
+  const { userFromDB: user, refetch } = useAppContext()
 
-    if (user?.role === 'admin') return <Navigate to={`/dashboard/admin-profile`}></Navigate>
-
+  if (user?.role === 'admin') return <Navigate to={`/dashboard/admin-profile`}></Navigate>
+  document.title = "LinkHive | My Profile";
   return (
 
     <div className=" w-full flex justify-center items-center">
@@ -24,7 +24,7 @@ const MyProfile = () => {
           />
           <h1 className="text-xl font-semibold text-gray-800 mt-4">{user?.name}</h1>
           <p className="text-gray-500 text-sm">{user?.email}</p>
-          <span className={`text-xs mt-2 px-3 py-1 rounded-full ${user?.membership ? "bg-yellow-300 text-yellow-800" 
+          <span className={`text-xs mt-2 px-3 py-1 rounded-full ${user?.membership ? "bg-yellow-300 text-yellow-800"
             : "bg-gray-200 text-gray-600"}`}>
             {user?.membership ? "Premium Member" : "Free User"}
           </span>
@@ -54,11 +54,10 @@ const MyProfile = () => {
               user?.badges.map((badge, index) => (
                 <div
                   key={index}
-                  className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg ${
-                    badge === "bronze" ? "bg-amber-200 text-amber-700" :
-                    badge === "silver" ? "bg-gray-300 text-gray-700" :
-                    badge === "gold" ? "bg-yellow-300 text-yellow-800" : ""
-                  }`}
+                  className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg ${badge === "bronze" ? "bg-amber-200 text-amber-700" :
+                      badge === "silver" ? "bg-gray-300 text-gray-700" :
+                        badge === "gold" ? "bg-yellow-300 text-yellow-800" : ""
+                    }`}
                 >
                   <FaMedal />
                   <span>{badge.charAt(0).toUpperCase() + badge.slice(1)}</span>
