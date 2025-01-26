@@ -1,9 +1,10 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
-import { IoIosNotifications, IoIosNotificationsOutline } from "react-icons/io";
+import { IoIosNotificationsOutline } from "react-icons/io";
 import useAppContext from '../../Contexts/useAppContext';
 import useAxiosPublic from '../../Hooks/useAxiosPublic';
+import siteLogo from '../../assets/hive_5446867.png'
 
 
 
@@ -65,7 +66,10 @@ const Navbar = () => {
         <div className={`flex sticky top-0 z-10 ${isNavBg ? "bg-gradient-to-r from-[#babaee] to-slate-100" : "bg-slate-100/50"}  flex-col items-center`}>
             <div className="navbar w-[98%] justify-between relative z-10 ">
                 <div className="flex items-center md:gap-5">
-                    <Link to={'/'} className="text-2xl font-bold bg-gradient-text mr-3 text-green-400">LinkHive</Link>
+                    <Link to={'/'} className="text-2xl font-bold flex items-center gap-2 bg-slate-300/20 bg-gradient-text mr-3 text-yellow-500">
+                    <img className='size-8' src={siteLogo} alt="" />
+                    LinkHive
+                    </Link>
                 </div>
                 <div className="relative flex gap-2 items-center">
                     <span className='relative'>
