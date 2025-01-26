@@ -1,8 +1,9 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { IoIosNotifications, IoIosNotificationsOutline } from "react-icons/io";
 import useAppContext from '../../Contexts/useAppContext';
-import getUserFromDB from '../../TanStackAPIs/getUserFromDB';
+import useAxiosPublic from '../../Hooks/useAxiosPublic';
 
 
 
@@ -11,6 +12,8 @@ const Navbar = () => {
     const [isNavBg, setIsNavBg] = useState();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef(null);
+    const [totalAnnounces, setTotalAnnounces] = useState(0);
+    const axiosPublic = useAxiosPublic();
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
@@ -21,6 +24,18 @@ const Navbar = () => {
             setIsMenuOpen(false);
         }
     };
+
+    useEffect(() => {
+        const fetchTotalAnnounces = async () => {
+            const { data } = await axiosPublic.get(
+                `/announcecount`
+            );
+            setTotalAnnounces(data.totalCount);
+        }
+
+        fetchTotalAnnounces()
+    }, [])
+
 
     useEffect(() => {
         document.addEventListener("mousedown", handleClickOutside);
@@ -53,26 +68,29 @@ const Navbar = () => {
                     <Link to={'/'} className="text-2xl font-bold bg-gradient-text mr-3 text-green-400">LinkHive</Link>
                 </div>
                 <div className="relative flex gap-2 items-center">
-                    {!user && <div className='flex gap-4 items-center mr-4'>
-                        <Link to={'/login'} className='px-6 py-2 rounded-[50px] border border-gray-400 text-slate-400-400 hover:bg-slate-900 hover:text-white'>Login</Link>
-                        <Link to={'/register'} className='px-6 py-2 rounded-[50px] border border-indigo-400 text-slate-800 hover:text-white hover:bg-indigo-400'>Register</Link>
+                    <span className='relative'>
+                        <span className='absolute top-4 -right-3 size-6 bg-gray-500/45 p-1 rounded-full flex items-center justify-center'>{totalAnnounces}</span>
+                        <IoIosNotificationsOutline className='text-3xl' />
+                    </span>
+                    {!user && <div className='flex gap-4  items-center mx-4'>
+                        <Link to={'/register'} className='px-6 py-2 rounded-[50px] border border-yellow-300 text-slate-800 hover:text-white hover:bg-yellow-300'>Join Us</Link>
                     </div>}
                     <div ref={menuRef} className='relative'>
                         {user &&
                             <span className="flex items-center gap-2 hover:bg-slate-300 rounded-xl p-2 relative ml-2 cursor-pointer" onClick={toggleMenu}>
-                                    <img
-                                        className={`h-10 w-10 rounded-full ${userFromDB?.membership && "border-yellow-500 border-[3px]" }`}
-                                        src={user?.photoURL}
-                                    />
-                                    {
-                                        isMenuOpen ? <FaChevronUp /> : <FaChevronDown/>
-                                    }
+                                <img
+                                    className={`h-10 w-10 rounded-full ${userFromDB?.membership && "border-yellow-500 border-[3px]"}`}
+                                    src={user?.photoURL}
+                                />
+                                {
+                                    isMenuOpen ? <FaChevronUp /> : <FaChevronDown />
+                                }
                             </span>
                         }
                         {
                             isMenuOpen &&
                             <div
-                                className="right-5 absolute bg-base-100 rounded-box mt-3 w-52 p-2 shadow">
+                                className="right-0 absolute bg-base-100 rounded-box mt-3 w-52 p-2 shadow">
                                 {
                                     user &&
                                     <div className='flex flex-col items-center justify-center pb-2 mb-2 border-b'>

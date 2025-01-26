@@ -17,6 +17,7 @@ import AdminRoute from "./AdminRoute";
 import UsersTable from "../Pages/UserTable/UsersTable";
 import ReportedActivityPage from "../Pages/ReportedActivityPage/ReportedActivityPage";
 import AdminProfile from "../Pages/AdminProfile/AdminProfile";
+import MakeAnnouncement from "../Pages/MakeAnnouncement/MakeAnnouncement";
 
 
 const router = createBrowserRouter([
@@ -81,6 +82,10 @@ const router = createBrowserRouter([
             {
                 path: 'admin-profile',
                 element:  <AdminRoute><AdminProfile/></AdminRoute>
+            },
+            {
+                path: 'makeannouncement',
+                element:  <AdminRoute><MakeAnnouncement/></AdminRoute>
             },
         ]
     }

@@ -1,27 +1,70 @@
 import React, { useState } from 'react';
+import Swal from 'sweetalert2';
 import useAxiosSecure from '../../Hooks/useAxiosSecure';
 
 const CommentsRow = ({ comment, setFullComment, currentPage, index, userFromDB, refresh }) => {
     console.log(comment);
     const [feedback, setFeedback] = useState("");
     const axiosSecure = useAxiosSecure();
+
     const handleReport = async (commentId) => {
-        const serverResponse = await axiosSecure.post('/report', {
-            reportedById: userFromDB?._id,
-            reportedByEmail: userFromDB?.email,
-            type: "comment",
-            targetId: commentId,
-            reportReason: feedback
-        })
-        console.log(serverResponse);
-        refresh();
-    }
+        if (!feedback) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Feedback Required',
+                text: 'Please select a feedback reason before reporting.',
+            });
+            return;
+        }
+
+        const confirmReport = await Swal.fire({
+            title: 'Are you sure?',
+            text: 'You are about to report this comment.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, report it!'
+        });
+
+        if (confirmReport.isConfirmed) {
+            const serverResponse = await axiosSecure.post('/report', {
+                reportedById: userFromDB?._id,
+                reportedByEmail: userFromDB?.email,
+                type: "comment",
+                targetId: commentId,
+                reportReason: feedback
+            });
+            Swal.fire({
+                icon: 'success',
+                title: 'Reported Successfully',
+                text: 'The comment has been reported.',
+            });
+            refresh();
+        }
+    };
 
     const reportDelete = async () => {
-        const serverRes = await axiosSecure.delete(`/report?reportId=${comment.userReport._id}`);
-        console.log(serverRes);
-        refresh();
-    }
+        const confirmDelete = await Swal.fire({
+            title: 'Are you sure?',
+            text: 'You are about to cancel this report.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, cancel it!'
+        });
+
+        if (confirmDelete.isConfirmed) {
+            const serverRes = await axiosSecure.delete(`/report?reportId=${comment.userReport._id}`);
+            Swal.fire({
+                icon: 'success',
+                title: 'Report Cancelled',
+                text: 'The report has been successfully cancelled.',
+            });
+            refresh();
+        }
+    };
 
     return (
         <tr className="">

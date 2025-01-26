@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import Select from "react-select";
+import Swal from "sweetalert2";
 import axios from "axios";
 import useAppContext from "../../Contexts/useAppContext";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
@@ -8,7 +9,7 @@ import getUserFromDB from "../../TanStackAPIs/getUserFromDB";
 import { Link } from "react-router";
 
 const AddPost = () => {
-    const { userFromDB, refetch } = getUserFromDB()
+    const { userFromDB, refetch } = getUserFromDB();
     const { register, handleSubmit, setValue, formState: { errors }, reset } = useForm();
     const [isUploading, setIsUploading] = useState(false);
     const [tags, setTags] = useState([]);
@@ -17,28 +18,22 @@ const AddPost = () => {
     const userPostsCount = userFromDB?.postsCount;
     const isMember = userFromDB?.membership;
 
-    const fetchTags = (params) => {
-            axiosSecure('/tags')
-            .then(res=>{
-                const options = res.data.map(option=>({ value: option.tag.toLowerCase(), label: option.tag }))
-                setTagaOptions(options)
+    const fetchTags = () => {
+        axiosSecure('/tags')
+            .then(res => {
+                const options = res.data.map(option => ({ value: option.tag.toLowerCase(), label: option.tag }));
+                setTagaOptions(options);
             });
-        }
-    
-        useEffect(()=>{
-            fetchTags()
-        },[])
+    };
 
-    // const tagOptions = [
-    //     { value: "technology", label: "Technology" },
-    //     { value: "education", label: "Education" },
-    //     { value: "health", label: "Health" },
-    //     { value: "lifestyle", label: "Lifestyle" },
-    // ];
+    useEffect(() => {
+        fetchTags();
+    }, []);
 
     const onSubmit = async (data) => {
         try {
             let imageUrl = "";
+
             if (data.image[0]) {
                 setIsUploading(true);
                 const formData = new FormData();
@@ -55,6 +50,12 @@ const AddPost = () => {
                 );
                 imageUrl = res.data.data.display_url;
                 setIsUploading(false);
+
+                Swal.fire({
+                    icon: "success",
+                    title: "Image Uploaded Successfully",
+                    text: "Your image has been uploaded.",
+                });
             }
 
             const postData = {
@@ -66,16 +67,28 @@ const AddPost = () => {
                 authorEmail: userFromDB?.email
             };
 
-            const insertResponse = await axiosSecure.post('/post', postData)
+            const insertResponse = await axiosSecure.post('/post', postData);
 
-            console.log("Post Data:", insertResponse);
+            Swal.fire({
+                icon: "success",
+                title: "Post Created Successfully",
+                text: "Your post has been published.",
+            });
+
+            reset();
+            setTags([]);
+            refetch();
+
+        } catch (error) {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: error.message || "An error occurred while creating the post.",
+            });
 
         } finally {
-            reset();
-            setTags(null)
-            refetch()
+            setIsUploading(false);
         }
-
     };
 
     return (
@@ -88,7 +101,7 @@ const AddPost = () => {
                         <input
                             type="text"
                             {...register("title", { required: "Title is required" })}
-                            className="mt-1 w-full p-2 h-[30px] border-b-2 border border-gray-800 rounded-md shadow-sm text-xl  focus-within:outline-none"
+                            className="mt-1 w-full p-2 h-[30px] border-b-2 border border-gray-800 rounded-md shadow-sm text-xl focus-within:outline-none"
                         />
                         {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>}
                     </div>
@@ -102,6 +115,7 @@ const AddPost = () => {
                             className="mt-1 block border-b-2 border rounded-md border-gray-800 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />
                     </div>
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Tags</label>
                         <Select
@@ -131,8 +145,7 @@ const AddPost = () => {
                             >You have already posted 5 times. Please Subscribe to Post more</Link> :
                             <button
                                 type="submit"
-                                className={`w-full flex col-span-2 justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${isUploading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
-                                    }`}
+                                className={`w-full flex col-span-2 justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${isUploading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"}`}
                                 disabled={isUploading}
                             >
                                 {isUploading ? "Uploading..." : "Create Post"}

@@ -4,6 +4,7 @@ import { HiDotsVertical } from "react-icons/hi";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import useAxiosPublic from "../../Hooks/useAxiosPublic";
 import getAllPosts from '../../TanStackAPIs/getAllPosts';
+import { FacebookIcon, FacebookShareButton, LinkedinIcon, LinkedinShareButton, TelegramIcon, TelegramShareButton, TwitterShareButton, XIcon } from "react-share";
 
 const PostPageView = ({ post, userId, refreshPost }) => {
     const { refetch } = getAllPosts()
@@ -27,7 +28,7 @@ const PostPageView = ({ post, userId, refreshPost }) => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [vote, setVote] = useState(userInteraction.vote);
     const [comments, setComments] = useState([]);
-    console.log(comments);
+    const shareUrl = `https://linkhivesps.web.app/post/${_id}`
 
     const fetchComments = async () => {
         if (_id) {
@@ -162,10 +163,49 @@ const PostPageView = ({ post, userId, refreshPost }) => {
                         <FaComment />
                         <span>{commentCount} Comments</span>
                     </button>
-                    <button className="flex items-center gap-2 text-gray-600 hover:text-purple-600">
-                        <FaShareAlt />
-                        <span>Share</span>
-                    </button>
+                    <div className=" dropdown">
+                        <button className="flex justify-center rounded-lg w-full py-2 items-center gap-2 text-gray-600 hover:text-purple-600">
+                            <FaShareAlt />
+                            <span>Share</span>
+                        </button>
+                        <div tabIndex={0} className=" z-30 dropdown-content -top-16 right-0 mt-2 flex justify-center items-center gap-5 p-3 bg-white border border-gray-200 rounded-lg shadow-md">
+                            <div className="Demo__some-network">
+                                <FacebookShareButton
+                                    url={shareUrl}
+                                    className="Demo__some-network__share-button"
+                                >
+                                    <FacebookIcon size={32} round />
+                                </FacebookShareButton>
+                            </div>
+                            <div className="Demo__some-network">
+                                <TwitterShareButton
+                                    url={shareUrl}
+                                    title={title}
+                                    className="Demo__some-network__share-button"
+                                >
+                                    <XIcon size={32} round />
+                                </TwitterShareButton>
+                            </div>
+                            <div className="Demo__some-network">
+                                <TelegramShareButton
+                                    url={shareUrl}
+                                    title={title}
+                                    className="Demo__some-network__share-button"
+                                >
+                                    <TelegramIcon size={32} round />
+                                </TelegramShareButton>
+                            </div>
+                            <div className="Demo__some-network">
+                                <LinkedinShareButton
+                                    url={shareUrl}
+                                    className="Demo__some-network__share-button"
+                                >
+                                    <LinkedinIcon size={32} round />
+                                </LinkedinShareButton>
+                            </div>
+
+                        </div>
+                    </div>
                 </div>
             </div>
 

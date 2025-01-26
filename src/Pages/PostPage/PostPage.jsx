@@ -33,7 +33,6 @@ const PostPage = () => {
         }
     }, [userFromDB]);
 
-    console.log(post,param.postId);
 
     if(isPending) return <LoadingPage/>
 

@@ -10,7 +10,7 @@ const PostsTableWithPagination = () => {
     const [totalPosts, setTotalPosts] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
 
-    const postsPerPage = 5; 
+    const postsPerPage = 5;
     const totalPages = Math.ceil(totalPosts / postsPerPage);
     const pages = [...Array(totalPages).keys()];
 
@@ -22,7 +22,7 @@ const PostsTableWithPagination = () => {
                     const { data } = await axiosSecure.get(
                         `/postscountbyuser?userEmail=${user.email}`
                     );
-                    setTotalPosts(data.totalCount); 
+                    setTotalPosts(data.totalCount);
                 } catch (error) {
                     console.error("Error fetching total posts:", error);
                 }
@@ -52,6 +52,10 @@ const PostsTableWithPagination = () => {
 
     const handleDelete = async (postId) => {
         const { data } = await axiosSecure.delete(`/post?postId=${postId}`);
+        Swal.fire({
+            icon: 'success',
+            title: 'Post Successfully',
+        });
         fetchPosts();
 
     }
@@ -92,7 +96,7 @@ const PostsTableWithPagination = () => {
                                     <td >
                                         <span className="flex justify-center">
                                             <button
-                                                onClick={()=>handleDelete(post._id)}
+                                                onClick={() => handleDelete(post._id)}
                                                 className="btn btn-sm btn-primary">
                                                 Delete
                                             </button>

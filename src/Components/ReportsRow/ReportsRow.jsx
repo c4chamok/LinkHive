@@ -1,6 +1,7 @@
 import React from 'react';
 import useAxiosSecure from '../../Hooks/useAxiosSecure';
 import { Link } from 'react-router';
+import Swal from 'sweetalert2';
 
 const ReportsRow = ({ report, currentPage, index, userFromDB, refresh }) => {
     const axiosSecure = useAxiosSecure();
@@ -8,6 +9,10 @@ const ReportsRow = ({ report, currentPage, index, userFromDB, refresh }) => {
     const takeAction = async () => {
         const { data } = await axiosSecure.delete(`/delete-reported?reportId=${report._id}`)
         refresh()
+        Swal.fire({
+            icon: 'success',
+            title: 'Reported target deleted',
+        });
     }
 
 
@@ -37,10 +42,10 @@ const ReportsRow = ({ report, currentPage, index, userFromDB, refresh }) => {
             </td>
             <td >
                 <span className="flex justify-center">
-                    
+
                     {
-                    report.type === 'comment' &&  ( report?.content?.postId === undefined ? "link not found":
-                    <Link to={`/post/${report?.content?.postId}`} className='btn btn-sm btn-info'>content</Link>)
+                        report.type === 'comment' && (report?.content?.postId === undefined ? "link not found" :
+                            <Link to={`/post/${report?.content?.postId}`} className='btn btn-sm btn-info'>content</Link>)
                     }
                 </span>
             </td>

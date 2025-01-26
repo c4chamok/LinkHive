@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import getAdminData from '../../TanStackAPIs/getAdminData';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import useAxiosSecure from '../../Hooks/useAxiosSecure';
+import Swal from 'sweetalert2';
 
 const AdminProfile = () => {
     const { adminData: data } = getAdminData();
@@ -13,20 +14,23 @@ const AdminProfile = () => {
     const commentsCount = data?.commentsCount;
 
     const fetchTags = (params) => {
-        axiosSecure('/tags').then(res=>setTags(res.data));
+        axiosSecure('/tags').then(res => setTags(res.data));
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         fetchTags()
-    },[])
+    }, [])
 
     const handleAddTag = async (e) => {
         e.preventDefault();
         const tagValue = e.target.tag.value
-        if (!tagValue.trim()) return;        
+        if (!tagValue.trim()) return;
         const serverRes = await axiosSecure.post('/tags', { tag: tagValue });
-        fetchTags()
-        console.log(serverRes);
+        fetchTags();
+        Swal.fire({
+            icon: 'success',
+            title: 'Tag Added successfully'
+        });
     };
 
     const pieData = [

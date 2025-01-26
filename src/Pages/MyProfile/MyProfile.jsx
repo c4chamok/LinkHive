@@ -2,10 +2,11 @@ import React from "react";
 import { FaUserCircle, FaCrown, FaMedal } from "react-icons/fa";
 import getUserFromDB from "../../TanStackAPIs/getUserFromDB";
 import { Link, Navigate } from "react-router";
+import useAppContext from "../../Contexts/useAppContext";
 
 const MyProfile = () => {
 
-    const { userFromDB: user, refetch } = getUserFromDB()
+    const { userFromDB: user, refetch } = useAppContext()
 
     if (user?.role === 'admin') return <Navigate to={`/dashboard/admin-profile`}></Navigate>
 

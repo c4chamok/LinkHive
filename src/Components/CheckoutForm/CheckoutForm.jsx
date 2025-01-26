@@ -1,19 +1,21 @@
 import React, { useState } from "react";
 import { useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from "@stripe/react-stripe-js";
 import { FaCreditCard, FaCcVisa, FaCcMastercard } from "react-icons/fa";
+import Swal from "sweetalert2";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import getUserFromDB from "../../TanStackAPIs/getUserFromDB";
 import { useNavigate } from "react-router";
+import useAppContext from "../../Contexts/useAppContext";
 
 function CheckoutForm() {
     const stripe = useStripe();
     const elements = useElements();
     const axiosSecure = useAxiosSecure();
-    const [paymentSuccess, setPaymentSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
     const [zipCode, setZipCode] = useState("");
     const [cardBrand, setCardBrand] = useState("generic");
     const { userFromDB, refetch } = getUserFromDB();
+    const { refetchUser } = useAppContext()
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -21,42 +23,72 @@ function CheckoutForm() {
 
         if (!stripe || !elements) return;
 
+        const confirmResult = await Swal.fire({
+            title: "Confirm Payment",
+            text: "Do you want to proceed with the payment?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, Pay!",
+            cancelButtonText: "Cancel",
+        });
+
+        if (!confirmResult.isConfirmed) {
+            return;
+        }
+
         setLoading(true);
 
-        const response = await axiosSecure("/create-payment-intent");
-        const { clientSecret } = await response.data;
+        try {
+            const response = await axiosSecure("/create-payment-intent");
+            const { clientSecret } = response.data;
 
-        const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-            payment_method: {
-                card: elements.getElement(CardNumberElement),
-                billing_details: {
-                    address: {
-                        postal_code: zipCode,
+            const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+                payment_method: {
+                    card: elements.getElement(CardNumberElement),
+                    billing_details: {
+                        address: {
+                            postal_code: zipCode,
+                        },
                     },
                 },
-            },
-        });
-        console.log(paymentIntent.id, userFromDB);
-        const subscribe = async () => {
-            const { data } = await axiosSecure.post('/handle-subscribe', {
-                intentId: paymentIntent.id,
-                userEmail: userFromDB?.email,
-                userId: userFromDB?._id
-            })
-            refetch();
-            navigate('/dashboard/profile');
-        }
+            });
 
-        if (error) {
+            if (error) {
+                console.error(error);
+                await Swal.fire({
+                    title: "Payment Failed!",
+                    text: error.message,
+                    icon: "error",
+                });
+            } else if (paymentIntent.status === "succeeded") {
+                await handleSubscription(paymentIntent.id);
+                await Swal.fire({
+                    title: "Payment Successful!",
+                    text: "Your payment was processed successfully.",
+                    icon: "success",
+                });
+                navigate("/dashboard/profile");
+            }
+        } catch (error) {
             console.error(error);
-            alert("Payment failed!");
-        } else if (paymentIntent.status === "succeeded") {
-            subscribe()
-            setPaymentSuccess(true);
-            alert("Payment successful!");
+            await Swal.fire({
+                title: "Error!",
+                text: "Something went wrong. Please try again.",
+                icon: "error",
+            });
+        } finally {
+            setLoading(false);
         }
+    };
 
-        setLoading(false);
+    const handleSubscription = async (intentId) => {
+        const { data } = await axiosSecure.post("/handle-subscribe", {
+            intentId,
+            userEmail: userFromDB?.email,
+            userId: userFromDB?._id,
+        });
+        refetch();
+        refetchUser();
     };
 
     const getCardIcon = (brand) => {
@@ -104,7 +136,6 @@ function CheckoutForm() {
                         />
                     </div>
                 </div>
-
 
                 <div className="flex items-center gap-4">
                     <div className="border flex-1 border-gray-300 rounded-lg p-4">
@@ -188,12 +219,6 @@ function CheckoutForm() {
                     "Pay"
                 )}
             </button>
-
-            {paymentSuccess && (
-                <p className="mt-6 text-green-600 text-center font-medium">
-                    Payment Successful!
-                </p>
-            )}
         </form>
     );
 }

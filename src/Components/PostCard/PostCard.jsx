@@ -4,6 +4,8 @@ import { HiDotsVertical } from "react-icons/hi";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import useAxiosPublic from "../../Hooks/useAxiosPublic";
 import { Link } from "react-router";
+import { FacebookIcon, FacebookShareButton, LinkedinIcon, LinkedinShareButton, TelegramIcon, TelegramShareButton, TwitterShareButton, XIcon } from "react-share";
+
 
 const PostCard = ({ post, userId }) => {
     const {
@@ -20,7 +22,7 @@ const PostCard = ({ post, userId }) => {
         userInteraction
     } = post;
 
-
+    const shareUrl = `https://linkhivesps.web.app/post/${_id}`
 
     const axiosSecure = useAxiosSecure();
     const [voteCount, setvoteCount] = useState({ upVotes, downVotes });
@@ -88,8 +90,8 @@ const PostCard = ({ post, userId }) => {
 
                 </div> */}
                 <p className="text-gray-500 text-xs">
-                        Posted on {new Date(createdAt).toLocaleDateString()}
-                    </p>
+                    Posted on {new Date(createdAt).toLocaleDateString()}
+                </p>
             </div>
 
             <h2 className="text-xl font-bold text-gray-800">{title}</h2>
@@ -130,10 +132,49 @@ const PostCard = ({ post, userId }) => {
                     <FaComment />
                     <span>{commentCount} Comments</span>
                 </Link>
-                <button className="flex justify-center rounded-lg w-full py-2 items-center gap-2 text-gray-600 hover:text-purple-600">
-                    <FaShareAlt />
-                    <span>Share</span>
-                </button>
+                <div className=" dropdown">
+                    <button className="flex justify-center rounded-lg w-full py-2 items-center gap-2 text-gray-600 hover:text-purple-600">
+                        <FaShareAlt />
+                        <span>Share</span>
+                    </button>
+                    <div tabIndex={0} className=" z-30 dropdown-content -top-16 right-0 mt-2 flex justify-center items-center gap-5 p-3 bg-white border border-gray-200 rounded-lg shadow-md">
+                        <div className="Demo__some-network">
+                            <FacebookShareButton
+                                url={shareUrl}
+                                className="Demo__some-network__share-button"
+                            >
+                                <FacebookIcon size={32} round />
+                            </FacebookShareButton>
+                        </div>
+                        <div className="Demo__some-network">
+                            <TwitterShareButton
+                                url={shareUrl}
+                                title={title}
+                                className="Demo__some-network__share-button"
+                            >
+                                <XIcon size={32} round />
+                            </TwitterShareButton>
+                        </div>
+                        <div className="Demo__some-network">
+                            <TelegramShareButton
+                                url={shareUrl}
+                                title={title}
+                                className="Demo__some-network__share-button"
+                            >
+                                <TelegramIcon size={32} round />
+                            </TelegramShareButton>
+                        </div>
+                        <div className="Demo__some-network">
+                            <LinkedinShareButton
+                                url={shareUrl}
+                                className="Demo__some-network__share-button"
+                            >
+                                <LinkedinIcon size={32} round />
+                            </LinkedinShareButton>
+                        </div>
+
+                    </div>
+                </div>
             </div>
         </div>
     );
