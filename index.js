@@ -1,7 +1,6 @@
 require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
-const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
@@ -63,6 +62,7 @@ async function run() {
         const commentsCollection = LinkHiveDB.collection('Comments');
         const reportsCollection = LinkHiveDB.collection('Reports');
         const tagsCollection = LinkHiveDB.collection('Tags');
+        const announcementsCollection = LinkHiveDB.collection('Announcements');
         const subscriptionCollection = LinkHiveDB.collection('Subscription');
 
         const verifyAdmin = async (req, res, next) => {
@@ -119,8 +119,8 @@ async function run() {
                 usersCollection.estimatedDocumentCount(),
                 postsCollection.estimatedDocumentCount(),
                 commentsCollection.estimatedDocumentCount()
-              ]);
-            res.send({adminData, usersCount, postsCount, commentsCount})
+            ]);
+            res.send({ adminData, usersCount, postsCount, commentsCount })
 
         })
 
@@ -155,7 +155,7 @@ async function run() {
             res.send(updateResponse)
         })
 
-        app.get('/tags', verifyToken, async (req, res) => {
+        app.get('/tags', async (req, res) => {
             const readResp = await tagsCollection.find().toArray();
             res.send(readResp)
         })
@@ -210,7 +210,7 @@ async function run() {
 
         app.get('/postcount', async (req, res) => {
             const totalcount = await postsCollection.estimatedDocumentCount();
-            res.send({totalcount})
+            res.send({ totalcount })
         })
 
         app.get('/post', async (req, res) => {
@@ -238,34 +238,30 @@ async function run() {
                         "authorData.postsCount": 0,
                         "authorData.commentCount": 0,
                     },
-                },
-                {
-                    $skip: size * page
-                },
-                {
-                    $limit: size * 1
-                },
-                
+                }
+
             ];
-            if(sort === 'latest'){
+            
+            if (sort === 'latest') {
                 pipeline.push(
                     {
                         $sort: { createdAt: -1 }
                     }
                 )
-            }else{
+            } else {
                 pipeline.push(
                     {
                         $addFields: {
-                          voteDifference: { $subtract: ["$upVotes", "$downVotes"] }
+                            voteDifference: { $subtract: ["$upVotes", "$downVotes"] }
                         }
-                      },
-                      {
+                    },
+                    {
                         $sort: { voteDifference: -1 }
-                      }
-                    
+                    }
+
                 )
             }
+
             if (pid) {
                 pipeline.unshift({
                     $match: {
@@ -280,6 +276,16 @@ async function run() {
                         tags: { $regex: searchText, $options: 'i' }
                     }
                 });
+            }
+            if (size && page) {
+                pipeline.push(
+                    {
+                        $skip: size * page
+                    },
+                    {
+                        $limit: size * 1
+                    }
+                )
             }
             const allPosts = await postsCollection.aggregate(pipeline).toArray();
             const postIds = [...new Set(allPosts.map(post => post._id.toString()))]
@@ -497,7 +503,7 @@ async function run() {
                         path: "$content",
                         preserveNullAndEmptyArrays: true
                     }
-                },{
+                }, {
                     $skip: size * page
                 },
                 {
@@ -505,17 +511,17 @@ async function run() {
                 },
                 {
                     $project: {
-                        "content.postId": 1,   
-                        "reportedByEmail": 1,   
-                        "reportReason": 1,   
-                        "type": 1,   
+                        "content.postId": 1,
+                        "reportedByEmail": 1,
+                        "reportReason": 1,
+                        "type": 1,
                         "reportedAt": 1,
                         "adminAction": 1
                     }
                 },
                 { $sort: { reportedAt: -1 } }
-                                           
-                
+
+
             ]).toArray()
             res.send(response);
         })
@@ -532,9 +538,9 @@ async function run() {
         })
         app.delete('/delete-reported', verifyToken, verifyAdmin, async (req, res) => {
             const { reportId } = req.query;
-            const { targetId, type } = await reportsCollection.findOne({_id: new ObjectId(reportId)})
+            const { targetId, type } = await reportsCollection.findOne({ _id: new ObjectId(reportId) })
             const commentdelete = await commentsCollection.deleteOne({ _id: new ObjectId(targetId) })
-            const updateReport = await reportsCollection.updateOne({_id: new ObjectId(reportId)},{
+            const updateReport = await reportsCollection.updateOne({ _id: new ObjectId(reportId) }, {
                 $set: {
                     adminAction: "resolved"
                 }
@@ -543,7 +549,7 @@ async function run() {
         })
 
 
-        app.get("/create-payment-intent", async (req, res) => {
+        app.get("/create-payment-intent", verifyToken, async (req, res) => {
             try {
                 const paymentIntent = await stripe.paymentIntents.create({
                     amount: 1000,
@@ -559,7 +565,7 @@ async function run() {
             }
         });
 
-        app.post("/handle-subscribe", async (req, res) => {
+        app.post("/handle-subscribe", verifyToken, async (req, res) => {
             const { intentId, userEmail, userId } = req.body;
             const paymentIntent = await stripe.paymentIntents.retrieve(intentId);
             if (paymentIntent.status !== "succeeded" && paymentIntent.amount !== 1000) {
@@ -577,22 +583,50 @@ async function run() {
             res.send({ message: "Successfully subscribed amd become a member" })
         })
 
-        app.get("/postsbyuser", async (req, res) => {
-            const { userEmail, page, size } = req.query;
+        app.get("/postsbyuser", verifyToken, async (req, res) => {
+            const userEmail = req.user.email
+            const { page, size } = req.query;
             const posts = await postsCollection.find({ authorEmail: userEmail }).skip(page * size).limit(size * 1).toArray()
             res.send(posts)
         })
 
-        app.get("/postscountbyuser", async (req, res) => {
-            const { userEmail } = req.query;
+        app.get("/postscountbyuser", verifyToken, async (req, res) => {
+            const { userEmail } = req.user.email;
             const postsCount = await postsCollection.countDocuments({ authorEmail: userEmail })
             res.send({ totalCount: postsCount })
         })
 
         app.post('/tags', verifyToken, verifyAdmin, async (req, res) => {
             const { tag } = req.body;
-            const insResponse = await tagsCollection.insertOne({tag})
+            const insResponse = await tagsCollection.insertOne({ tag })
             res.send(insResponse)
+        })
+
+        app.get('/announce', async (req, res) => {
+            const {size,page} =req.query;
+            const result = await announcementsCollection.find().skip(size*page).limit(size*1).toArray()
+            res.send(result)
+        })
+        
+        app.get('/announcecount', async (req, res) => {
+            const totalCount = await announcementsCollection.estimatedDocumentCount()
+            res.send({totalCount})
+        })
+
+        app.post('/announce', verifyToken, verifyAdmin, async (req, res) => {
+            const adminId = req.user.adminId 
+            const { title, description, adminImage, adminName } = req.body;
+            const insResponse = await announcementsCollection.insertOne({ 
+                title, description, adminId, adminImage, adminName,
+                time: new Date()
+             })
+            res.send(insResponse)
+        })
+
+        app.delete('/announce', verifyToken, verifyAdmin, async (req, res) => {
+            const {announceId} = req.query; 
+            const deleteResponse = await announcementsCollection.deleteOne({_id: new ObjectId(announceId)})
+            res.send(deleteResponse)
         })
 
 
