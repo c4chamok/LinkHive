@@ -15,7 +15,7 @@ const UsersTable = () => {
     
     const skip = (currentPage - 1);
 
-    const usersPerPage = 5;
+    const usersPerPage = 10;
     const totalPages = Math.ceil(totalUsers / usersPerPage);
     const pages = [...Array(totalPages).keys()];
 

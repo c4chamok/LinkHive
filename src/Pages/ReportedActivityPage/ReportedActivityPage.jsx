@@ -13,7 +13,7 @@ const ReportedActivityPage = () => {
 
     const skip = (currentPage - 1);
 
-    const ReportsPerPage = 5;
+    const ReportsPerPage = 10;
     const totalPages = Math.ceil(totalReports / ReportsPerPage);
     const pages = [...Array(totalPages).keys()];
 

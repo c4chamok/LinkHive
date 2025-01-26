@@ -5,9 +5,11 @@ import { Outlet } from 'react-router';
 const DashboardLayot = () => {
     
     return (
-        <div className='w-screen h-screen flex'>
+        <div className='w-full h-screen overflow-hidden flex'>
             <Sidebar/>
-            <Outlet/>
+            <div className="overflow-y-scroll w-full">
+                <Outlet />
+            </div>
         </div>
     );
 };

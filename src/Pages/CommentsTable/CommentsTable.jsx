@@ -17,7 +17,7 @@ const CommentsTable = () => {
 
     const [fullComment, setFullComment] = useState("");
     // console.log(userFromDB);
-    const CommentsPerPage = 5;
+    const CommentsPerPage = 10;
     const totalPages = Math.ceil(totalComments / CommentsPerPage);
     const pages = [...Array(totalPages).keys()];
 

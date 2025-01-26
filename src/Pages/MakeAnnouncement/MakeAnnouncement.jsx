@@ -13,7 +13,7 @@ const MakeAnnouncement = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [openModal, setOpenModal] = useState(false);
 
-    const announcesPerPage = 5;
+    const announcesPerPage = 10;
     const totalPages = Math.ceil(totalAnnounces / announcesPerPage);
     const pages = [...Array(totalPages).keys()];
 
